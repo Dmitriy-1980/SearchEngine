@@ -1,9 +1,11 @@
 package searchengine.model;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "index")
+@Table(name = "serch_index")
 public class Index {
 
     @Column(name = "id")
@@ -12,11 +14,12 @@ public class Index {
     int id;
 
     @Column(name = "page_id")
-    @OneToOne()
-    Page page;
+    int pageId;
 
+    @Column(name = "lemma_id")
     int lemmaId;
 
-    int rank;
+    @Column(name = "rank", columnDefinition = "FLOAT")
+    float rank;
 
 }

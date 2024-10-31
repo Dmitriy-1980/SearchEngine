@@ -1,127 +1,127 @@
-<mxfile host="Electron" modified="2024-10-29T09:32:11.576Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.21 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="xzvD4dKL6beiT2leYsbL" version="22.1.21" type="device" pages="2">
-  <diagram name="Страница — 1" id="05HNoEamU4fH_bshA4Ix">
-    <mxGraphModel dx="1366" dy="813" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+<mxfile host="Electron" modified="2024-10-31T07:59:44.606Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.1.21 Chrome/120.0.6099.109 Electron/28.1.0 Safari/537.36" etag="dJW98WdS4lwF-o465TLv" version="22.1.21" type="device" pages="3">
+  <diagram name="дано" id="05HNoEamU4fH_bshA4Ix">
+    <mxGraphModel dx="1434" dy="854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-1" value="DTO &lt;b&gt;&lt;u&gt;ErrorResponse&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;String&lt;/b&gt; - сообщение об ошибке&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-1" value="DTO &lt;b&gt;&lt;u&gt;ErrorResponse&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;String&lt;/b&gt; - сообщение об ошибке&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" parent="1" vertex="1">
           <mxGeometry x="15" y="340" width="225" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-2" value="DTO &lt;b&gt;&lt;u&gt;OneWordLemmaRequest&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;b&gt;String&lt;/b&gt; - слово которое нужно поискать&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-2" value="DTO &lt;b&gt;&lt;u&gt;OneWordLemmaRequest&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;b&gt;String&lt;/b&gt; - слово которое нужно поискать&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" parent="1" vertex="1">
           <mxGeometry x="15" y="390" width="225" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-3" value="DTO &lt;b&gt;&lt;u&gt;SaveWordResponse&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;b&gt;String&lt;/b&gt; - слово &lt;br&gt;&lt;b&gt;List&lt;/b&gt;&amp;lt;String&amp;gt;-список его форм для сохранения" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-3" value="DTO &lt;b&gt;&lt;u&gt;SaveWordResponse&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;b&gt;String&lt;/b&gt; - слово &lt;br&gt;&lt;b&gt;List&lt;/b&gt;&amp;lt;String&amp;gt;-список его форм для сохранения" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" parent="1" vertex="1">
           <mxGeometry x="15" y="440" width="225" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-4" value="DTO &lt;u&gt;&lt;b&gt;SearchWordRequest&lt;/b&gt;&lt;i&gt;&amp;nbsp;&lt;/i&gt;&lt;/u&gt;&lt;br&gt;&lt;b&gt;String&lt;/b&gt;-слово для которого все формы ищем&lt;br&gt;&lt;b&gt;int&lt;/b&gt;-максколичесвто форм этого слова." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-4" value="DTO &lt;u&gt;&lt;b&gt;SearchWordRequest&lt;/b&gt;&lt;i&gt;&amp;nbsp;&lt;/i&gt;&lt;/u&gt;&lt;br&gt;&lt;b&gt;String&lt;/b&gt;-слово для которого все формы ищем&lt;br&gt;&lt;b&gt;int&lt;/b&gt;-максколичесвто форм этого слова." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" parent="1" vertex="1">
           <mxGeometry x="15" y="510" width="225" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-5" value="DTO &lt;b&gt;&lt;u&gt;WordResponse&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;&quot;&gt;String - слово&lt;/div&gt;&lt;div style=&quot;&quot;&gt;String - список форм в строку&lt;/div&gt;&lt;div style=&quot;&quot;&gt;int - кол (??предел)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-5" value="DTO &lt;b&gt;&lt;u&gt;WordResponse&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;&quot;&gt;String - слово&lt;/div&gt;&lt;div style=&quot;&quot;&gt;String - список форм в строку&lt;/div&gt;&lt;div style=&quot;&quot;&gt;int - кол (??предел)&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;align=left;" parent="1" vertex="1">
           <mxGeometry x="15" y="590" width="225" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-6" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;DTO&amp;nbsp;&lt;/span&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;&lt;u&gt;WordsListResponse&lt;/u&gt;&lt;/b&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;int&lt;/b&gt; - кол записей&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;List&amp;lt;WordResponse&amp;gt;&lt;/b&gt; - список&amp;nbsp; объектов&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-6" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;DTO&amp;nbsp;&lt;/span&gt;&lt;b style=&quot;background-color: initial;&quot;&gt;&lt;u&gt;WordsListResponse&lt;/u&gt;&lt;/b&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;int&lt;/b&gt; - кол записей&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;List&amp;lt;WordResponse&amp;gt;&lt;/b&gt; - список&amp;nbsp; объектов&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
           <mxGeometry x="15" y="670" width="225" height="70" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-7" value="Controller&amp;nbsp;&lt;u style=&quot;font-weight: bold;&quot;&gt;LemmaController&lt;/u&gt;&amp;nbsp;(все запросы начинаются с &quot;/api/lemma/&quot;)&lt;br&gt;Получает запросы от клиента (напр веб сайт).&amp;nbsp;&lt;br&gt;В зависимости от типа запроса получает из него DTO и отправляет в сервис, откуда ждет соответствующего ответа.&amp;nbsp;&lt;br&gt;&lt;b&gt;lemma()&lt;/b&gt; - получает в запросе слово для поиска&amp;nbsp; (&lt;b&gt;OnWordLemmaRequest&lt;/b&gt;) и возвращает все его формы&lt;br&gt;&lt;b&gt;saveWordInfo()&lt;/b&gt; - получает в запросе слово (&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;OnWordLemmaRequest&lt;/b&gt;)&amp;nbsp;из него делаем &lt;b&gt;SaveWordResponse&lt;/b&gt; и возвращаем его в составе ответа.&lt;br&gt;search() - в запросе передается слово ля поиска и предел на количество его форм (макс)." style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-7" value="Controller&amp;nbsp;&lt;u style=&quot;font-weight: bold;&quot;&gt;LemmaController&lt;/u&gt;&amp;nbsp;(все запросы начинаются с &quot;/api/lemma/&quot;)&lt;br&gt;Получает запросы от клиента (напр веб сайт).&amp;nbsp;&lt;br&gt;В зависимости от типа запроса получает из него DTO и отправляет в сервис, откуда ждет соответствующего ответа.&amp;nbsp;&lt;br&gt;&lt;b&gt;lemma()&lt;/b&gt; - получает в запросе слово для поиска&amp;nbsp; (&lt;b&gt;OnWordLemmaRequest&lt;/b&gt;) и возвращает все его формы&lt;br&gt;&lt;b&gt;saveWordInfo()&lt;/b&gt; - получает в запросе слово (&lt;b style=&quot;border-color: var(--border-color);&quot;&gt;OnWordLemmaRequest&lt;/b&gt;)&amp;nbsp;из него делаем &lt;b&gt;SaveWordResponse&lt;/b&gt; и возвращаем его в составе ответа.&lt;br&gt;search() - в запросе передается слово ля поиска и предел на количество его форм (макс)." style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="760" y="250" width="420" height="250" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-7" target="_rpHcd99hOz4KBSV7LUy-14">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-7" target="_rpHcd99hOz4KBSV7LUy-14" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="833" y="380" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-8" value="Config&lt;br&gt;LemmaConfiguration" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-8" value="Config&lt;br&gt;LemmaConfiguration" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="20" y="240" width="145" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-9" value="Exception&lt;br&gt;DefaultAdvice" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-9" value="Exception&lt;br&gt;DefaultAdvice" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="15" y="10" width="145" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-10" value="Exception&lt;br&gt;WordNotFit&lt;br&gt;ToDictionaryException" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-10" value="Exception&lt;br&gt;WordNotFit&lt;br&gt;ToDictionaryException" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" parent="1" vertex="1">
           <mxGeometry x="15" y="60" width="145" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-11" value="Model&amp;nbsp;&lt;u style=&quot;font-weight: bold;&quot;&gt;WordEntity&lt;/u&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;long id - id в БД,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;String word - словов БД,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;String morphologyInfo-список форм слова в одну строку.(??),&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;int count - наврно кол??&lt;/span&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-11" value="Model&amp;nbsp;&lt;u style=&quot;font-weight: bold;&quot;&gt;WordEntity&lt;/u&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;long id - id в БД,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;String word - словов БД,&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;String morphologyInfo-список форм слова в одну строку.(??),&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;int count - наврно кол??&lt;/span&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="230" y="10" width="370" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;targetPerimeterSpacing=0;startArrow=none;startFill=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-12" target="_rpHcd99hOz4KBSV7LUy-25">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;targetPerimeterSpacing=0;startArrow=none;startFill=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-12" target="_rpHcd99hOz4KBSV7LUy-25" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-12" value="(Interface)&amp;nbsp;&amp;nbsp;&lt;b&gt;&lt;u&gt;&lt;span style=&quot;background-color: initial; text-align: left;&quot;&gt;Repositories&amp;nbsp;&lt;/span&gt;WordRepository&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;List&amp;lt;WordEntity&amp;gt;findeAllContains(String, int)&lt;/b&gt; - ищет в БД слова походие на заданное, кол слов в ответе ограничено.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-12" value="(Interface)&amp;nbsp;&amp;nbsp;&lt;b&gt;&lt;u&gt;&lt;span style=&quot;background-color: initial; text-align: left;&quot;&gt;Repositories&amp;nbsp;&lt;/span&gt;WordRepository&lt;/u&gt;&lt;/b&gt;&amp;nbsp;&lt;br&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;b&gt;List&amp;lt;WordEntity&amp;gt;findeAllContains(String, int)&lt;/b&gt; - ищет в БД слова походие на заданное, кол слов в ответе ограничено.&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="840" y="1190" width="440" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-13" target="_rpHcd99hOz4KBSV7LUy-12">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-27" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-13" target="_rpHcd99hOz4KBSV7LUy-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-40" value="запрашивает все формы слова&lt;br&gt;по переданной его части.&lt;br&gt;(макс кол тоже передано)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rotation=270;" vertex="1" connectable="0" parent="_rpHcd99hOz4KBSV7LUy-27">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-40" value="запрашивает все формы слова&lt;br&gt;по переданной его части.&lt;br&gt;(макс кол тоже передано)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rotation=270;" parent="_rpHcd99hOz4KBSV7LUy-27" vertex="1" connectable="0">
           <mxGeometry x="0.1823" y="4" relative="1" as="geometry">
             <mxPoint x="-4" y="-14" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.111;exitDx=0;exitDy=0;entryX=1.012;entryY=0.069;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-13" target="_rpHcd99hOz4KBSV7LUy-24">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.111;exitDx=0;exitDy=0;entryX=1.012;entryY=0.069;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-13" target="_rpHcd99hOz4KBSV7LUy-24" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-31" value="отправляет на проверку слово" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="_rpHcd99hOz4KBSV7LUy-29">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-31" value="отправляет на проверку слово" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="_rpHcd99hOz4KBSV7LUy-29" vertex="1" connectable="0">
           <mxGeometry x="0.4512" relative="1" as="geometry">
             <mxPoint x="17" y="-29" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-13" target="_rpHcd99hOz4KBSV7LUy-7">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.25;entryY=1;entryDx=0;entryDy=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-13" target="_rpHcd99hOz4KBSV7LUy-7" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-35" value="возвращает ответ&amp;nbsp;&lt;br&gt;содержащий DTO&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="_rpHcd99hOz4KBSV7LUy-34">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-35" value="возвращает ответ&amp;nbsp;&lt;br&gt;содержащий DTO&amp;nbsp;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="_rpHcd99hOz4KBSV7LUy-34" vertex="1" connectable="0">
           <mxGeometry x="0.3988" y="1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-13" value="Services &lt;u&gt;&lt;b&gt;MorphologyService&lt;/b&gt;&lt;/u&gt; .&lt;br&gt;Реализует несколько методов работы .&lt;br&gt;&lt;b&gt;List&amp;lt;String&amp;gt; &lt;u&gt;morpfologyForms&lt;/u&gt;(String)&lt;/b&gt; - получает от lucene все формы слова&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;b&gt;SaveWordResponse &lt;u&gt;saveWord&lt;/u&gt;(String)&lt;/b&gt; - если слово нормальное, то возвращает слово и все его формы&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;WordListResponse &lt;u&gt;searchWord&lt;/u&gt;(SearchWordRequest) &lt;/b&gt;- вытаскивает из БД все слова похожие на заданное в запроме. Кол ограничено.&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;u&gt;converToResponse&lt;/u&gt;(List&amp;lt;WordEntity&amp;gt;)&lt;/b&gt;&amp;nbsp;конвертер Entity2Dto&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;u&gt;createSaveWordResponse&lt;/u&gt;()&lt;/b&gt;&amp;nbsp;понятно из названия.&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;u&gt;createWordEntity&lt;/u&gt;()&lt;/b&gt;&amp;nbsp;создает сущность. поле morphologyInfo - это список форм слова в одну строку. (хз зачем).&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-13" value="Services &lt;u&gt;&lt;b&gt;MorphologyService&lt;/b&gt;&lt;/u&gt; .&lt;br&gt;Реализует несколько методов работы .&lt;br&gt;&lt;b&gt;List&amp;lt;String&amp;gt; &lt;u&gt;morpfologyForms&lt;/u&gt;(String)&lt;/b&gt; - получает от lucene все формы слова&lt;br&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;b&gt;SaveWordResponse &lt;u&gt;saveWord&lt;/u&gt;(String)&lt;/b&gt; - если слово нормальное, то возвращает слово и все его формы&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;WordListResponse &lt;u&gt;searchWord&lt;/u&gt;(SearchWordRequest) &lt;/b&gt;- вытаскивает из БД все слова похожие на заданное в запроме. Кол ограничено.&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;u&gt;converToResponse&lt;/u&gt;(List&amp;lt;WordEntity&amp;gt;)&lt;/b&gt;&amp;nbsp;конвертер Entity2Dto&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;u&gt;createSaveWordResponse&lt;/u&gt;()&lt;/b&gt;&amp;nbsp;понятно из названия.&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;b&gt;&lt;u&gt;createWordEntity&lt;/u&gt;()&lt;/b&gt;&amp;nbsp;создает сущность. поле morphologyInfo - это список форм слова в одну строку. (хз зачем).&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;align=left;" parent="1" vertex="1">
           <mxGeometry x="840" y="790" width="440" height="190" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-14" target="_rpHcd99hOz4KBSV7LUy-13">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-14" target="_rpHcd99hOz4KBSV7LUy-13" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-14" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;(Interface)&amp;nbsp; Services&lt;/span&gt;&lt;/div&gt;MorphologyServiceImpl" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-14" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;(Interface)&amp;nbsp; Services&lt;/span&gt;&lt;/div&gt;MorphologyServiceImpl" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
           <mxGeometry x="1120" y="610" width="145" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-15" target="_rpHcd99hOz4KBSV7LUy-7">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-15" target="_rpHcd99hOz4KBSV7LUy-7" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="760" y="270" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-23" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;/api/lemma/****&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="_rpHcd99hOz4KBSV7LUy-22">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-23" value="&lt;font style=&quot;font-size: 14px;&quot;&gt;/api/lemma/****&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="_rpHcd99hOz4KBSV7LUy-22" vertex="1" connectable="0">
           <mxGeometry x="-0.0588" y="-1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-15" value="WEB" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-15" value="WEB" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="340" y="230" width="110" height="50" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-24" value="Библиотека lucene&amp;nbsp;&lt;br&gt;получает слово и приводит его к &quot;нормализованному виду&quot; - те выделяет лемму==основу слова. По этой &quot;основе&quot; потом генерирует все возможные морфологические формы." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-24" value="Библиотека lucene&amp;nbsp;&lt;br&gt;получает слово и приводит его к &quot;нормализованному виду&quot; - те выделяет лемму==основу слова. По этой &quot;основе&quot; потом генерирует все возможные морфологические формы." style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" parent="1" vertex="1">
           <mxGeometry x="230" y="820" width="260" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-25" value="БАЗА ДАННЫХ" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-25" value="БАЗА ДАННЫХ" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="965" y="1380" width="190" height="120" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1.015;exitY=0.946;exitDx=0;exitDy=0;entryX=-0.005;entryY=0.789;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-24" target="_rpHcd99hOz4KBSV7LUy-13">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1.015;exitY=0.946;exitDx=0;exitDy=0;entryX=-0.005;entryY=0.789;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-24" target="_rpHcd99hOz4KBSV7LUy-13" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-32" value="если слово из нужного словаря&amp;nbsp;&lt;br&gt;то возвращаются все его формы" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="_rpHcd99hOz4KBSV7LUy-30">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-32" value="если слово из нужного словаря&amp;nbsp;&lt;br&gt;то возвращаются все его формы" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="_rpHcd99hOz4KBSV7LUy-30" vertex="1" connectable="0">
           <mxGeometry x="-0.078" y="-2" relative="1" as="geometry">
             <mxPoint x="3" y="21" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-33" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;с библиотекой lucene работает&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;только методы&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;b&gt;morphologyForm()&lt;/b&gt;&amp;nbsp;который дает формы слова и&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;saveWord() который получает получает формы слова&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;и сохраняет в БД&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-33" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;с библиотекой lucene работает&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;только методы&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;&lt;b&gt;morphologyForm()&lt;/b&gt;&amp;nbsp;который дает формы слова и&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;saveWord() который получает получает формы слова&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;и сохраняет в БД&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
           <mxGeometry x="507" y="840" width="320" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.178;exitY=0.003;exitDx=0;exitDy=0;entryX=0.359;entryY=1.004;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-25" target="_rpHcd99hOz4KBSV7LUy-12">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.178;exitY=0.003;exitDx=0;exitDy=0;entryX=0.359;entryY=1.004;entryDx=0;entryDy=0;entryPerimeter=0;exitPerimeter=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-25" target="_rpHcd99hOz4KBSV7LUy-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-38" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;exitX=0.348;exitY=0.009;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.348;entryY=1.027;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="_rpHcd99hOz4KBSV7LUy-12" target="_rpHcd99hOz4KBSV7LUy-13">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-38" value="" style="edgeStyle=none;orthogonalLoop=1;jettySize=auto;html=1;rounded=0;exitX=0.348;exitY=0.009;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.348;entryY=1.027;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="_rpHcd99hOz4KBSV7LUy-12" target="_rpHcd99hOz4KBSV7LUy-13" edge="1">
           <mxGeometry width="100" relative="1" as="geometry">
             <mxPoint x="950" y="1040" as="sourcePoint" />
             <mxPoint x="1050" y="1040" as="targetPoint" />
             <Array as="points" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_rpHcd99hOz4KBSV7LUy-39" value="&lt;p style=&quot;line-height: 120%;&quot;&gt;возвращает коллекцию&lt;br&gt;сущностей WordEntity&lt;br&gt;&lt;/p&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rotation=270;" vertex="1" connectable="0" parent="_rpHcd99hOz4KBSV7LUy-38">
+        <mxCell id="_rpHcd99hOz4KBSV7LUy-39" value="&lt;p style=&quot;line-height: 120%;&quot;&gt;возвращает коллекцию&lt;br&gt;сущностей WordEntity&lt;br&gt;&lt;/p&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];rotation=270;" parent="_rpHcd99hOz4KBSV7LUy-38" vertex="1" connectable="0">
           <mxGeometry x="-0.1943" y="-1" relative="1" as="geometry">
             <mxPoint as="offset" />
           </mxGeometry>
@@ -130,12 +130,112 @@
     </mxGraphModel>
   </diagram>
   <diagram id="Y9Y60WAUiY6ofGwkaoD3" name="Страница — 2">
-    <mxGraphModel dx="1783" dy="1738" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2261" dy="2023" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="ZUBxjbeOQ-uqWD9U4qmy-1" value="&lt;u&gt;class LemmaConfiguration&lt;/u&gt;.&amp;nbsp; Аннотирован &lt;b&gt;@Configuration &lt;/b&gt;- это значит, что в этом классе методы порождающие объекты&lt;br&gt;которые будут использоваться в других классах.&amp;nbsp;&lt;br&gt;В других классах можно объявлять объекты этих классов, а спринг сам их сгенерирует.&lt;br&gt;Метод который спринг будетиспользовать для генерации объектов аннотируется &lt;b&gt;@Bean&lt;/b&gt;.&lt;br&gt;Пример: здесь метод:&lt;br&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;@Bean&amp;nbsp;&lt;/font&gt;//говорим что это &quot;бин&quot;- объект который спринг сам сгенерирует когда нужно будет и подставит куда нужн будет&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;public LuceneMorphology luceneMorphology() throws IOException {&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; return new RussianLuceneMorphology(); //вернет объект для работы с русской морфологией&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;}&lt;/font&gt; //в результате, если где то будет объявлено поле такого типа, то спринг сам сгенерирует объект.&amp;nbsp;&lt;/div&gt;&lt;div&gt;Нужно будет только объявить, ну и место (поле) где это произойдет тоже должно быть аннотировано&amp;nbsp;&lt;b&gt;@Autowired&lt;/b&gt;&amp;nbsp;.&lt;/div&gt;&lt;div&gt;(&quot;&lt;/div&gt;&amp;nbsp;аннотация Component сказала спрингу, что класс, который ей аннотируем, это бин.&lt;br&gt;Аннотация Autowired попросила Spring в поле, которое она аннотирует, подставить значение. Эта операция называется «инжектнуть» (inject).&lt;div&gt;&quot;)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="ZUBxjbeOQ-uqWD9U4qmy-1" value="&lt;u&gt;class LemmaConfiguration&lt;/u&gt;.&amp;nbsp; Аннотирован &lt;b&gt;@Configuration &lt;/b&gt;- это значит, что в этом классе методы порождающие объекты&lt;br&gt;которые будут использоваться в других классах.&amp;nbsp;&lt;br&gt;В других классах можно объявлять объекты этих классов, а спринг сам их сгенерирует.&lt;br&gt;Метод который спринг будетиспользовать для генерации объектов аннотируется &lt;b&gt;@Bean&lt;/b&gt;.&lt;br&gt;Пример: здесь метод:&lt;br&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;@Bean&amp;nbsp;&lt;/font&gt;//говорим что это &quot;бин&quot;- объект который спринг сам сгенерирует когда нужно будет и подставит куда нужн будет&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;public LuceneMorphology luceneMorphology() throws IOException {&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; return new RussianLuceneMorphology(); //вернет объект для работы с русской морфологией&lt;/font&gt;&lt;/div&gt;&lt;div&gt;&lt;font color=&quot;#e40101&quot;&gt;}&lt;/font&gt; //в результате, если где то будет объявлено поле такого типа, то спринг сам сгенерирует объект.&amp;nbsp;&lt;/div&gt;&lt;div&gt;Нужно будет только объявить, ну и место (поле) где это произойдет тоже должно быть аннотировано&amp;nbsp;&lt;b&gt;@Autowired&lt;/b&gt;&amp;nbsp;.&lt;/div&gt;&lt;div&gt;(&quot;&lt;/div&gt;&amp;nbsp;аннотация Component сказала спрингу, что класс, который ей аннотируем, это бин.&lt;br&gt;Аннотация Autowired попросила Spring в поле, которое она аннотирует, подставить значение. Эта операция называется «инжектнуть» (inject).&lt;div&gt;&quot;)&lt;/div&gt;" style="text;html=1;align=left;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="1" vertex="1">
           <mxGeometry x="-255" y="-22" width="820" height="210" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="WOHdBIIaJkmk3F06MMhU" name="БД">
+    <mxGraphModel dx="1434" dy="854" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="6W5ttqoEknhuahKMgeKE-6" value="page" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="910" y="280" width="160" height="140" as="geometry">
+            <mxRectangle x="370" y="190" width="70" height="50" as="alternateBounds" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-7" value="id&lt;br&gt;site_id&lt;br&gt;path&lt;br&gt;code&lt;br&gt;content" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="6W5ttqoEknhuahKMgeKE-6">
+          <mxGeometry y="50" width="160" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-8" value="Site" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="240" y="40" width="160" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-9" value="id&lt;br&gt;status&lt;br&gt;status_time&lt;br&gt;last_error&lt;br&gt;url&lt;br&gt;name" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="6W5ttqoEknhuahKMgeKE-8">
+          <mxGeometry y="50" width="160" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-10" value="lemma" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="100" y="300" width="160" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-30" value="id&lt;br&gt;site_id&lt;br&gt;lemma&lt;br&gt;frequency" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="6W5ttqoEknhuahKMgeKE-10">
+          <mxGeometry y="50" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-12" value="index" style="swimlane;childLayout=stackLayout;horizontal=1;startSize=50;horizontalStack=0;rounded=1;fontSize=14;fontStyle=0;strokeWidth=2;resizeParent=0;resizeLast=1;shadow=0;dashed=0;align=center;arcSize=4;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="440" y="330" width="160" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-13" value="id&lt;br&gt;page_id&lt;br&gt;lemma_id&lt;br&gt;rank" style="align=left;strokeColor=none;fillColor=none;spacingLeft=4;fontSize=12;verticalAlign=top;resizable=0;rotatable=0;part=1;html=1;" vertex="1" parent="6W5ttqoEknhuahKMgeKE-12">
+          <mxGeometry y="50" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-23" value="" style="endArrow=none;html=1;rounded=0;entryX=0;entryY=0.089;entryDx=0;entryDy=0;entryPerimeter=0;exitX=1;exitY=0.429;exitDx=0;exitDy=0;exitPerimeter=0;" edge="1" parent="1" source="6W5ttqoEknhuahKMgeKE-13" target="6W5ttqoEknhuahKMgeKE-7">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="620" y="390" as="sourcePoint" />
+            <mxPoint x="440" y="410" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="690" y="410" />
+              <mxPoint x="770" y="370" />
+              <mxPoint x="840" y="338" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-24" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;many&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6W5ttqoEknhuahKMgeKE-23">
+          <mxGeometry x="-0.8693" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-25" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;many&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6W5ttqoEknhuahKMgeKE-23">
+          <mxGeometry x="0.858" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-26" value="" style="endArrow=none;html=1;rounded=0;exitX=1.013;exitY=0.614;exitDx=0;exitDy=0;exitPerimeter=0;entryX=-0.025;entryY=0.629;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="6W5ttqoEknhuahKMgeKE-13">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="262.0799999999999" y="420" as="sourcePoint" />
+            <mxPoint x="490" y="440" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-27" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;many&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6W5ttqoEknhuahKMgeKE-26">
+          <mxGeometry x="0.7015" y="-4" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-28" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;one&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6W5ttqoEknhuahKMgeKE-26">
+          <mxGeometry x="-0.8321" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-29" value="" style="endArrow=none;html=1;rounded=0;entryX=-0.006;entryY=0.11;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" target="6W5ttqoEknhuahKMgeKE-9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="40" y="352.5" as="sourcePoint" />
+            <mxPoint x="230" y="100" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="40" y="100" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-32" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;many&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6W5ttqoEknhuahKMgeKE-29">
+          <mxGeometry x="0.8494" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-33" value="" style="endArrow=none;html=1;rounded=0;entryX=-0.006;entryY=0.11;entryDx=0;entryDy=0;entryPerimeter=0;exitX=0;exitY=0.25;exitDx=0;exitDy=0;" edge="1" parent="1" source="6W5ttqoEknhuahKMgeKE-30">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="100" y="368" as="sourcePoint" />
+            <mxPoint x="39.700000000000045" y="348.29999999999995" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="40" y="370" />
+              <mxPoint x="40" y="240" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="6W5ttqoEknhuahKMgeKE-36" value="&lt;font style=&quot;font-size: 13px;&quot;&gt;one&lt;/font&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="6W5ttqoEknhuahKMgeKE-33">
+          <mxGeometry x="-0.7504" y="5" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
