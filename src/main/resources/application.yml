@@ -1,0 +1,30 @@
+# example values
+
+indexing-settings:
+  deepOfSearch : 2 #глубина поиска подстраниц
+  sites:
+    - url: https://www.lenta.ru
+      name: Лента.ру
+    - url: https://www.skillbox.ru
+      name: Skillbox
+    - url: https://www.playback.ru
+      name: PlayBack.Ru
+
+server:
+  port: 8085
+
+spring:
+  datasource:
+    username: root
+    password: pass
+#    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=false
+    url: jdbc:mysql://localhost:3306/search_engine
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: create #update
+    show-sql: true
+
+
