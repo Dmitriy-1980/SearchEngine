@@ -1,9 +1,9 @@
 package searchengine.model;
 
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import javax.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,7 +19,8 @@ public class Site {
 
     // todo - @NotNull //что за com.sun.istack ??? Должна быть аноташа про запрет на нул в джава ПРОВЕРИТЬ!
     //@NotNull
-    @Column(name = "status", nullable = false, columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')")
+//    @Column(name = "status", nullable = false, columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')")
+    @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(10)")
     private IndexingStatus status;
 
     @Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
@@ -35,4 +36,9 @@ public class Site {
     @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(255)")
     private String name;
 
+    @Override
+    public String toString() {
+        return "Site{ id:" + id + " ; url: " + url + " ; name: " + name + " ; status: " + status + " ; statusTime: " +
+                statusTime + " ; url: " + url + "}";
+    }
 }

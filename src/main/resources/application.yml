@@ -1,7 +1,8 @@
 # example values
 
 indexing-settings:
-  deepOfSearch : 2 #глубина поиска подстраниц
+  testQq: 7
+  deepLimit : 2 #глубина поиска подстраниц/ уровень главной страницы=1
   sites:
     - url: https://www.lenta.ru
       name: Лента.ру
@@ -15,16 +16,23 @@ server:
 
 spring:
   datasource:
+#    username: root
+#    password: pass
+#    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=false
+#    url: jdbc:mysql://localhost:3306/search_engine
+    url: jdbc:postgresql://localhost:5433/postgres
     username: root
     password: pass
-#    url: jdbc:mysql://localhost:3306/search_engine?useSSL=false&requireSSL=false&allowPublicKeyRetrieval=false
-    url: jdbc:mysql://localhost:3306/search_engine
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled : true #версифицирование отключено
   jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.MySQL8Dialect
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: validate #update
+      ddl-auto:  none #validate #update #drop #create-only #create #create-drop
     show-sql: true
+
 
 

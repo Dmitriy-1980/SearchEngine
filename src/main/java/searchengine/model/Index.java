@@ -1,11 +1,13 @@
 package searchengine.model;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Table(name = "serch_index")
+@Table(name = "search_index")
+@Getter
+@Setter
 public class Index {
 
     @Column(name = "id")

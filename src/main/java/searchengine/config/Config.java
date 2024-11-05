@@ -6,14 +6,15 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import java.sql.Connection;
+import java.util.List;
 
 @Getter
 @Setter
 @Component
 @ConfigurationProperties(prefix = "indexing-settings")
 public class Config {
-    private int deepOfSearch;
-
+    private int deepLimit;
+    private List<Site> sites;
 //    public Connection
 
 

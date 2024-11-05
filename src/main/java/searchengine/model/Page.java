@@ -1,15 +1,12 @@
 package searchengine.model;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.stereotype.Indexed;
-
-import javax.persistence.*;
-import javax.persistence.Index;
 
 @Entity
 
-@Table(name = "page", indexes = {@Index(columnList = "path" , name = "index_path")})
+@Table(name = "page")
 @Setter
 @Getter
 //@AllArgsConstructor
@@ -27,7 +24,6 @@ public class Page {
 
 
     @Column(name = "path", nullable = false, columnDefinition = "VARCHAR(255)")
-//    @Index(name = "index_path", columnList = "path")
     private String path;
 
     @Column(name = "code", nullable = false, columnDefinition = "INT")

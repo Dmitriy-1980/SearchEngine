@@ -1,9 +1,8 @@
 package searchengine.model;
 
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import javax.persistence.*;
 
 @Getter
 @Setter
@@ -23,7 +22,7 @@ public class Lemma {
     String lemma;
 
     @Column(name = "frequency")
-    int frequency;
+    float frequency;
 
 
 }
