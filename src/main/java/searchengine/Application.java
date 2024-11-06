@@ -15,13 +15,12 @@ import searchengine.mechanics.ReadSiteList;
 @RequiredArgsConstructor
 @ConfigurationProperties(prefix = "indexing-settings")
 public class Application {
-    //private final ReadSiteList readSiteList;
+//    private static final ReadSiteList readSiteList;
 
     public static void main(String[] args) {
-//        SpringApplication.run(Application.class, args);
         ApplicationContext context = SpringApplication.run(Application.class, args);
-        //readSiteList.readSiteList();
-        context.getBean(ReadSiteList.class).readSiteList();//создать бин и запустить метод
-        System.out.println("stop");
+        context.getBean(ReadSiteList.class).readSiteList();
+        //context.getBean(ReadSiteList.class).readSiteList();//создать бин и запустить метод
+        System.out.println("Application.main.lastPoint");
     }
 }

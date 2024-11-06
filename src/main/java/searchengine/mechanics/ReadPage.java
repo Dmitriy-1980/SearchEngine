@@ -11,7 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import searchengine.mechanics.operationResults.ReadPageResult;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
@@ -29,9 +31,9 @@ public class ReadPage implements Runnable{
     private Document document;
     private String message; //сообщение об ошибке
     private HashMap<String, ReadPageResult> map; //коллекция для сбора страниц. Ключ-адрес. Ключ уникальный.
-    private ForkJoinPool pool;
+    private ExecutorService pool;
 
-    public ReadPage(String siteUrl, String pageUrl , int deepLimit, int deep, HashMap<String, ReadPageResult> map, ForkJoinPool pool){
+    public ReadPage(String siteUrl, String pageUrl , int deepLimit, int deep, HashMap<String, ReadPageResult> map, ExecutorService pool){
         this.siteUrl = siteUrl;
         this.pageUrl = pageUrl;
         this.deepLimit = deepLimit;
@@ -43,6 +45,7 @@ public class ReadPage implements Runnable{
 
     @Override
     public void run() {
+        System.out.println("ReadPageRan thread: " + Thread.currentThread().getName());
         read();
     }
 
@@ -70,6 +73,10 @@ public class ReadPage implements Runnable{
             readPageResult.setDocument(document);
             readPageResult.setLinks(linksList);
             readPageResult.setReaded(true);
+            String text = document.text();
+            ArrayList<String> words = new ArrayList<>( Arrays.asList( text.split("[\\s]") ) );
+            readPageResult.setContent(text);
+            readPageResult.setWords( words );
             //todo поля word и content заполнить. Нужны соотв методы
             map.put(link, readPageResult);
 
