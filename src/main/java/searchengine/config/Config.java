@@ -4,8 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-
-import java.sql.Connection;
 import java.util.List;
 
 @Getter
@@ -15,7 +13,12 @@ import java.util.List;
 public class Config {
     private int deepLimit;
     private List<Site> sites;
-//    public Connection
-
+    private int offset;
+    private int limit;
+    private String userAgent;
+    private String referer;
+    private int timeout; //таймаут(ms) между обращениями к сайту
+    private int responseWait; //время одижания ответа индексируемой страницы
+    private boolean readSubDomain; //обрабатывать ли поддомены
 
 }

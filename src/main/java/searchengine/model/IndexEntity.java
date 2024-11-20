@@ -8,7 +8,7 @@ import lombok.Setter;
 @Table(name = "search_index")
 @Getter
 @Setter
-public class Index {
+public class IndexEntity {
 
     @Column(name = "id")
     @Id

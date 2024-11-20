@@ -10,7 +10,7 @@ import lombok.Setter;
 @Setter
 @Getter
 //@AllArgsConstructor
-public class Page {
+public class PageEntity {
 
     @Id
     @Column(name = "id", insertable = false, updatable = false)
@@ -20,7 +20,7 @@ public class Page {
     //todo association! CascadeType-????
     @ManyToOne(optional = false)
     @JoinColumn(name = "site_id")
-    private Site siteId;
+    private SiteEntity siteId;
 
 
     @Column(name = "path", nullable = false, columnDefinition = "VARCHAR(255)")

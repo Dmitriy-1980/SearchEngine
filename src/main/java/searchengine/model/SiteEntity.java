@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "site")
 @Getter
 @Setter
-public class Site {
+public class SiteEntity {
 
     @Id
     @Column(name = "id")
@@ -21,7 +21,7 @@ public class Site {
     //@NotNull
 //    @Column(name = "status", nullable = false, columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')")
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(10)")
-    private IndexingStatus status;
+    private String status;
 
     @Column(name = "status_time", nullable = false, columnDefinition = "DATETIME")
     private LocalDateTime statusTime;

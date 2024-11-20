@@ -11,4 +11,6 @@ public class DetailedStatisticsItem {
     private String error;
     private int pages;
     private int lemmas;
+
+
 }

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--changeset - наюор изменений колторый нужно применить к БД -->
+    <changeSet id="001 create table 'SITE' " author="Dimitr">
+        <!-- сперва нужно создать перечислимый тип. Так уж postgres устроен-->
+        <!-- но все равно сильно неудобно, поэтому поставил VARCHAR(10) -->
+        <!-- <sql>CREATE TYPE status AS ENUM('INDEXING','INDEXED','FAILED')</sql> -->
+        <createTable tableName="site">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="status" type="VARCHAR(10)">
+                <constraints nullable="false" />
+            </column>
+            <column name="status_time" type="DATETIME">
+                <constraints nullable="false" />
+            </column>
+            <column name="last_error" type="TEXT">
+            </column>
+            <column name="url" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="002 create table 'page' " author="Dimitr">
+        <createTable tableName="page">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="site_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="path" type="MEDIUMTEXT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="MEDIUMTEXT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="003 create unique index page(site_id, path)" author="Dimitr">
+        <createIndex tableName="page" indexName="page_path" unique="true">
+            <column name="site_id"/>
+            <column name="path"/>
+        </createIndex>
+    </changeSet>
+    
+    <changeSet id="004 create table 'lemma' " author="Dimitr" >
+        <createTable tableName="lemma">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="site_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lemma" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="frequency" type="float">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="005 create table 'index' " author="Dimitr">
+        <createTable tableName="search_index">
+            <column name="id" type="int" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lemma_id" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rank" type="float">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

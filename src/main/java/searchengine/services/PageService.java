@@ -1,19 +1,19 @@
 package searchengine.services;
 
-import searchengine.model.Page;
+import searchengine.model.PageEntity;
 
 import java.util.Optional;
 
-public interface PageCRUDService {
+public interface PageService {
 
     //добавить страницу
-    Optional<Integer> addPage(Page page);
+    Optional<PageEntity> addPage(PageEntity page);
 
     //получить страницу по id страницы
-    Optional<Page> getById(int pageId);
+    Optional<PageEntity> getById(int pageId);
 
-    //обновить страницу по id
-    boolean upateById(Page page);
+    //обновить страницу
+    boolean upate(PageEntity page);
 
     //удалить страницу по id
     boolean delById(int pageId);
@@ -21,6 +21,6 @@ public interface PageCRUDService {
     //удалить все страницы по id сайта
     boolean delAllBySiteId(int siteId);
 
-
-
+    //добавить отдельно новую страницу
+    boolean addThisPage(String pageUrl);
 }

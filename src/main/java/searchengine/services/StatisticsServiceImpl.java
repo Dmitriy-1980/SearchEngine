@@ -1,72 +1,108 @@
 package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import searchengine.config.Site;
-import searchengine.config.SitesList;
+import searchengine.config.Config;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
+import searchengine.model.IndexingStatus;
+import searchengine.model.SiteEntity;
+import searchengine.repositories.LemmaRepository;
+import searchengine.repositories.PageRepository;
+import searchengine.repositories.SiteRepository;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
+    private final SiteRepository siteRep;
+    private final LemmaRepository lemmaRep;
+    private final PageRepository pageRep;
+    private final Config config;
+    private final SiteServiceImpl siteService;
+
+    //детальная инфа по сайту
+    @Override
+    public DetailedStatisticsItem getDetailedStatisticsItem(String siteUrl) {
+        DetailedStatisticsItem detailedStatisticsItem =new DetailedStatisticsItem();
+        if (!siteRep.existUrl(siteUrl)){ //сайта такого в БД нет
+            detailedStatisticsItem.setError("Такой сайт еще не индексировался.");
+            detailedStatisticsItem.setStatus("FAILED");
+            detailedStatisticsItem.setUrl(siteUrl);
+            detailedStatisticsItem.setLemmas(0);
+            detailedStatisticsItem.setPages(0);
+            detailedStatisticsItem.setStatusTime(System.currentTimeMillis());
+            return detailedStatisticsItem;
+        }
+        SiteEntity site = siteRep.findByUrl(siteUrl);
+        int id = site.getId();
+        int lemmaCount = lemmaRep.getCountBySitrId(id);
+        int pageCount = pageRep.getCountBySiteId(id);
+        long statusTime = Timestamp.valueOf(site.getStatusTime()).getTime();
+
+        detailedStatisticsItem.setError(site.getLastError());
+        detailedStatisticsItem.setLemmas(lemmaCount);
+        detailedStatisticsItem.setName(site.getName());
+        detailedStatisticsItem.setPages(pageCount);
+        detailedStatisticsItem.setStatus(site.getStatus().toString());
+        detailedStatisticsItem.setStatusTime(statusTime);
+        detailedStatisticsItem.setUrl(site.getUrl());
 
 
+        return detailedStatisticsItem;
+    }
 
+    //общая инфа- сколько пропарсено сайтов, страниц, найдено лемм
+    @Override
+    public TotalStatistics getTotalStatistics() {
+        TotalStatistics totalStatistics = new TotalStatistics();
+        totalStatistics.setSites( (int) siteRep.count() );
+        totalStatistics.setPages( (int) pageRep.count() );
+        totalStatistics.setLemmas( (int) lemmaRep.count() );
+        if ( ! siteRep.existIndexing() ){
+            totalStatistics.setIndexing(false);
+        } else{
+            totalStatistics.setIndexing(true);
+        }
+        return totalStatistics;
+    }
 
-//    private final Random random = new Random();
-//    private final SitesList sites;
+    //сборная инфа = общая инфа + детальная по каждому сайту
+    @Override
+    public StatisticsData getStatisticData() {
+        StatisticsData statisticsData = new StatisticsData();
+        statisticsData.setTotal( getTotalStatistics() );
+        List<DetailedStatisticsItem> list = new ArrayList<>();
+        for (int i = 0; i < config.getSites().size(); i++){
+            list.add( getDetailedStatisticsItem( config.getSites().get(i).getUrl() ) );
+        }
+        statisticsData.setDetailed( list );
+        return statisticsData;
+    }
 
+    //сборная инфа + результат (вся получена или нет)
     @Override
     public StatisticsResponse getStatistics() {
-//        String[] statuses = { "INDEXED", "FAILED", "INDEXING" };
-//        String[] errors = {
-//                "Ошибка индексации: главная страница сайта не доступна",
-//                "Ошибка индексации: сайт не доступен",
-//                ""
-//        };
-//
-//
-//        /*далее идет блок имитации работы, заполнение dto-шек случайными количествами... */
-//        TotalStatistics total = new TotalStatistics();
-//        total.setSites(sites.getSites().size());
-//        total.setIndexing(true);
-//
-//        List<DetailedStatisticsItem> detailed = new ArrayList<>();
-//        List<Site> sitesList = sites.getSites();   ///нахуя??
-//        for(int i = 0; i < sitesList.size(); i++) {
-//            Site site = sitesList.get(i);                     //элемент списка = отдельный сайт
-//            DetailedStatisticsItem item = new DetailedStatisticsItem(); //детали по сайту
-//            item.setName(site.getName());                               //имя его
-//            item.setUrl(site.getUrl());                                 //и адрес
-//            int pages = random.nextInt(1_000);          //случайное кол страниц <100
-//            int lemmas = pages * random.nextInt(1_000); //случайное кол лемм <1000
-//            item.setPages(pages);                             //и их устанввливаем в поля
-//            item.setLemmas(lemmas);                           //детальной информации
-//            item.setStatus(statuses[i % 3]);                  //статус тоже случайно выбираеться из 3 вариантов
-//            item.setError(errors[i % 3]);                     //аналогично с ошибкой - случайная.
-//            item.setStatusTime(System.currentTimeMillis() -   //время тоже "от балды", но в пределах )))
-//                    (random.nextInt(10_000)));
-//            total.setPages(total.getPages() + pages);         //добавление кол "пропарсенных" страниц к общему
-//            total.setLemmas(total.getLemmas() + lemmas);      //добавление кол "наденных" леммк общему количеству
-//            detailed.add(item);                               //добавление "детальной статы" по сайту к общему список "деталек"
-//        }
-//
-//        StatisticsResponse response = new StatisticsResponse();//возвращаемый объект (StatisticData , boolean result)
-//        StatisticsData data = new StatisticsData(); //формируем StatisticData объект
-//        data.setTotal(total);
-//        data.setDetailed(detailed);
-//        response.setStatistics(data);               //и заполняем возвращаемый объект
-//        response.setResult(true);
-//        return response;
-        return null;
+        StatisticsResponse statisticsResponse = new StatisticsResponse();
+        statisticsResponse.setStatistics( getStatisticData() );
+        //todo смысл этого поля пояснить надо/ Предположу, что это общий стаатус сайтов - были ошибки при обработке или нет
+        boolean result = true;
+        for ( DetailedStatisticsItem item : statisticsResponse.getStatistics().getDetailed() ) {
+            if (! item.getStatus().equals( IndexingStatus.INDEXED.toString()) ){
+                result = false;
+                break;
+            }
+        }
+        statisticsResponse.setResult(result);
+
+        return statisticsResponse;
     }
+
+
 
 }

@@ -1,27 +1,26 @@
 package searchengine.services;
 
 
-import searchengine.model.Site;
+import searchengine.model.SiteEntity;
 
-import java.util.List;
 import java.util.Optional;
 
-public interface SiteCRUDService {
+public interface SiteService {
 
     //добавить сайт по его url
-    Optional<Integer> addSite(String url, String name);
+    boolean addSite(String url, String name);
 
     //найти сайт по его url
-    Optional<Site> getByUrl(String url);
+    Optional<SiteEntity> getByUrl(String url);
 
     //найти сайт по id
-    Optional<Site> getById(int id);
+    Optional<SiteEntity> getById(int id);
 
     //обновить сайт по его url
-    boolean updateByUrl(String url, Site site);
+    boolean updateByUrl(String url, SiteEntity site);
 
     //обновить сайт по его id
-    boolean updateById(int id, Site site);
+    boolean updateById(int id, SiteEntity site);
 
     //удалить сайт по его url
     boolean delByUrl(String url);
@@ -29,7 +28,8 @@ public interface SiteCRUDService {
     //удалить сайт по его id
     boolean delById(int id);
 
-
+    //выполнить переданный запрос
+//    ResponseEntity<List<Site>> executeQuery(String query);
 
 
 
