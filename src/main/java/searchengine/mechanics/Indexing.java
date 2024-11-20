@@ -69,7 +69,14 @@ public class Indexing {
     }
 
     //удалить все данные указанного сайта
-    private void clearSiteData(String url){
+    private void clearSiteData(String sitePath){
+        String url;
+        if (sitePath.endsWith("/")){
+            url = sitePath;
+        }else{
+            url = sitePath + "/";
+        }
+
         if (siteRep.existUrl(url)){
             int siteId = siteRep.findByUrl(url).getId();
             pageRep.delAllBySiteId( siteId );

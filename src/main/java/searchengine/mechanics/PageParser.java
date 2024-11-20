@@ -171,6 +171,8 @@ public class PageParser extends RecursiveAction {
 
                 page.setSiteId(site);
                 page.setPath(getLocalUrl(pageUrl));
+                page.setCode(520);
+                page.setContent("-");
                 pageRep.save(page);
             }
             return;
