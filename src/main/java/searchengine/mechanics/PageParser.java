@@ -38,7 +38,7 @@ public class PageParser extends RecursiveAction {
 
 
     public PageParser(String pageUrl, HashSet<String> linksSet,
-                      ForkJoinPool pool/*, Connection connection*/,
+                      ForkJoinPool pool,
                       SiteRepository siteRep, PageRepository pageRep,
                       LemmaRepository lemmaRep, IndexRepository indexRep,
                       int deep, int deepLimit, SiteEntity site, int timeout, boolean readSubDomain){
@@ -63,7 +63,7 @@ public class PageParser extends RecursiveAction {
         }
     }
 
-    @SneakyThrows
+    //@SneakyThrows
     @Override
     public void compute(){
 
@@ -85,7 +85,7 @@ public class PageParser extends RecursiveAction {
 
 
     private void readPage(){
-
+//если deep=1 то это главная страница, значит нужно создать кроме page еще и  site
         if (site == null){
             site = new SiteEntity();
         }
@@ -93,6 +93,7 @@ public class PageParser extends RecursiveAction {
         LemmaEntity lemma = new LemmaEntity();
         IndexEntity index = new IndexEntity();
 
+        //непроснувшийся поток:
         try {
             Thread.sleep(timeout);
         } catch (InterruptedException e){
@@ -101,9 +102,10 @@ public class PageParser extends RecursiveAction {
                 site.setStatus(IndexingStatus.FAILED.toString());
                 site.setName("-");
                 site.setStatusTime(LocalDateTime.now());
-                site.setLastError("Пото не вышел изсна. InterruptedException. " + e.getMessage());
+                site.setLastError("Пото не вышел из сна. InterruptedException. " + e.getMessage());
                 siteRep.save(site);
-            } else{
+            }
+            else{
                 page.setSiteId(site);
                 page.setContent("-");
                 page.setCode(520); //неизвестная ошибка
@@ -117,14 +119,15 @@ public class PageParser extends RecursiveAction {
             return;
         }
 
+        //ошибкаполучения siteResponse
         Connection.Response siteResponse = null;
         try {
             siteResponse = getResponse();
         }catch (Exception e){
-
+            System.out.println("Ошибка получения объекта SiteResponse");
         }
 
-        //если deep=1 то это главная страница, значит нужно создать кроме page еще и  site
+        //если http код "отрицательный"
         if (siteResponse.statusCode() >=400){
             if (deep == 1){
                 //главная стр. Сделать запись site
@@ -149,7 +152,6 @@ public class PageParser extends RecursiveAction {
 
         //при ошибке парсинга:
         try{
-            //document = connection.get();
             document = siteResponse.parse();
         }catch (IOException e){
             if (deep == 1){
@@ -159,7 +161,8 @@ public class PageParser extends RecursiveAction {
                 site.setName("-");
                 site.setLastError("Ошибка парсинга. Не удалось получить Jsoup.nodes.Document. Ошибка: " + e.getMessage());
                 siteRep.save(site);
-            }else {
+            }
+            else {
                 //не главная.
                 site.setStatusTime(LocalDateTime.now());
                 site.setLastError("Ошибка парсинга чтраницы \"" + pageUrl + "\". Не удалось получить Jsoup.nodes.Document." +
@@ -202,10 +205,8 @@ public class PageParser extends RecursiveAction {
             if (!isCorrectLink(link) || isSubdomain(link)){
                 continue;
             }
-            synchronized (linksSet) {
-                if (linksSet.add( link )){
-                    linkOnPage.add( link );
-                }
+            if (linksSet.add( link )){
+                linkOnPage.add( link );
             }
         }
 
@@ -215,6 +216,7 @@ public class PageParser extends RecursiveAction {
         page.setSiteId(site);
         page.setCode(siteResponse.statusCode());
         try {
+            System.out.println("Проверка наличия " + page.getPath() + " " + pageRep.existUrlWithSite(site.getId(), page.getPath())  );
             pageRep.save(page);
         }catch (Exception e){
             System.out.println("Ошибка сохранения " + page.getPath() + " ");
@@ -224,8 +226,9 @@ public class PageParser extends RecursiveAction {
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
         if (deep < deepLimit){
             for (String link : linkOnPage){
-                PageParser pageParser = new PageParser(link, linksSet, pool,/* connection,*/
-                        siteRep, pageRep, lemmaRep , indexRep, ++deep, deepLimit, site, timeout, readSubDomain);
+                PageParser pageParser = new PageParser(link, linksSet, pool,
+                        siteRep, pageRep, lemmaRep , indexRep, deep + 1, deepLimit, site, timeout, readSubDomain);
+                System.out.println(">>>>>>>>>>> в работу отправлена ссылка " + link);
                 pool.submit(pageParser).fork();
             }
         }

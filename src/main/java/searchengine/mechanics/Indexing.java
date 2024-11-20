@@ -48,7 +48,7 @@ public class Indexing {
         for (Site site : config.getSites()){
             clearSiteData(site.getUrl());
             PageParser pageParser = new PageParser(site.getUrl(), linksSet,
-                    pool,/* connection,*/ siteRep, pageRep ,
+                    pool, siteRep, pageRep ,
                     lemmaRep , indexRep, 1, config.getDeepLimit(), null ,
                     config.getTimeout(), config.isReadSubDomain());
             pool.submit(pageParser);
