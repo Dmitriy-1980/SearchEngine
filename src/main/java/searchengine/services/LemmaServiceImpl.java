@@ -60,14 +60,28 @@ public class LemmaServiceImpl implements LemmaService{
         }
     }
 
-    //получить лемму по ее ID
+    //получить лемму по ее ID и вернуть Optional
     @Override
-    public Optional<LemmaEntity> getById(int id) {
-        try{
-            return lemmaRep.findById(id);
-        }catch (Exception e){
-            e.printStackTrace();
-            return Optional.empty();
-        }
+    public Optional<LemmaEntity> getOptnlById(int id) {
+        return lemmaRep.findById(id);
     }
+
+    //получить лемму по ее ID и вернуть Entity
+    @Override
+    public LemmaEntity getEntityById(int id){
+        return lemmaRep.getEntityById(id);
+    }
+
+    //кол лемм по указанному id сайта
+    @Override
+    public int getCountBySiteId(int id){
+        return lemmaRep.getCountBySiteId(id);
+    }
+
+    //удалить все леммы по ID сайта
+    public void delAllBySiteId(int id){
+        lemmaRep.delAllBySiteId(id);
+    }
+
+
 }

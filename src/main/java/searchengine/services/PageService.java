@@ -13,7 +13,7 @@ public interface PageService {
     Optional<PageEntity> getById(int pageId);
 
     //обновить страницу
-    boolean upate(PageEntity page);
+    boolean update(PageEntity page);
 
     //удалить страницу по id
     boolean delById(int pageId);
@@ -21,6 +21,9 @@ public interface PageService {
     //удалить все страницы по id сайта
     boolean delAllBySiteId(int siteId);
 
-    //добавить отдельно новую страницу
-    boolean addThisPage(String pageUrl);
+    //кол страниц по заданному id сайта
+    Integer getCountBySiteId(int id);
+
+    //проверить наличие по path
+    boolean existUrlWithSite(int siteId, String path );
 }

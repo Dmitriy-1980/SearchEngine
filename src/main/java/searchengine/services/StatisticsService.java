@@ -22,9 +22,4 @@ public interface StatisticsService {
     //получить сводную статистику
     StatisticsResponse getStatistics();
 
-
-
-
-
-
 }

@@ -1,6 +1,5 @@
 package searchengine.services;
 
-
 import searchengine.model.SiteEntity;
 
 import java.util.Optional;
@@ -10,11 +9,15 @@ public interface SiteService {
     //добавить сайт по его url
     boolean addSite(String url, String name);
 
-    //найти сайт по его url
-    Optional<SiteEntity> getByUrl(String url);
+    //найти сайт по его url (вернуть Optional)
+    Optional<SiteEntity> getOptnlByUrl(String url);
+    //найти сайт по его url (вернуть Entity)
+    SiteEntity getEntityByUrl(String url);
 
-    //найти сайт по id
-    Optional<SiteEntity> getById(int id);
+    //найти сайт по id (вернуть Optional)
+    Optional<SiteEntity> getOptnlById(int id);
+    //найти сайт по id (вернуть Entity)
+    SiteEntity getEntityById(int id);
 
     //обновить сайт по его url
     boolean updateByUrl(String url, SiteEntity site);
@@ -28,10 +31,10 @@ public interface SiteService {
     //удалить сайт по его id
     boolean delById(int id);
 
-    //выполнить переданный запрос
-//    ResponseEntity<List<Site>> executeQuery(String query);
+    //проверить наличие сайтов у которых индексация еще идет
+    boolean existIndexing();
 
-
-
+    //проверить наличие сайта по url
+    boolean existUrl(String url);
 
 }

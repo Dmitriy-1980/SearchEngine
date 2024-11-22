@@ -17,9 +17,6 @@ public class SiteEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    // todo - @NotNull //что за com.sun.istack ??? Должна быть аноташа про запрет на нул в джава ПРОВЕРИТЬ!
-    //@NotNull
-//    @Column(name = "status", nullable = false, columnDefinition = "ENUM('INDEXING', 'INDEXED', 'FAILED')")
     @Column(name = "status", nullable = false, columnDefinition = "VARCHAR(10)")
     private String status;
 
@@ -35,6 +32,7 @@ public class SiteEntity {
 
     @Column(name = "name", nullable = false, columnDefinition = "VARCHAR(255)")
     private String name;
+
 
     @Override
     public String toString() {

@@ -9,7 +9,6 @@ import lombok.Setter;
 @Table(name = "page")
 @Setter
 @Getter
-//@AllArgsConstructor
 public class PageEntity {
 
     @Id
@@ -17,7 +16,6 @@ public class PageEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    //todo association! CascadeType-????
     @ManyToOne(optional = false)
     @JoinColumn(name = "site_id")
     private SiteEntity siteId;

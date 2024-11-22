@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import searchengine.config.Config;
 import searchengine.model.*;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
@@ -20,33 +21,28 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
 public class PageParser extends RecursiveAction {
-    private String pageUrl;
+    private final String pageUrl;
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
-    private HashSet linksSet;
-    private ForkJoinPool pool;
-    private int deep;
-    private int deepLimit;
-    private int timeout; //задержка между запросами к страницам сайта
-    private boolean readSubDomain; //читать ли поддомены
+    private HashSet<String> linksSet;
+    private final ForkJoinPool pool;
+    private final int deep;
     private String protocol; // протокол запроса (в виде http: или https: )
+    private final Config config;
 
-    private SiteRepository siteRep;
-    private PageRepository pageRep;
-    private LemmaRepository lemmaRep;
-    private IndexRepository indexRep;
+    private final SiteRepository siteRep;
+    private final PageRepository pageRep;
+    private final LemmaRepository lemmaRep;
+    private final IndexRepository indexRep;
 
 
-    public PageParser(String pageUrl, HashSet<String> linksSet,
-                      ForkJoinPool pool,
-                      SiteRepository siteRep, PageRepository pageRep,
-                      LemmaRepository lemmaRep, IndexRepository indexRep,
-                      int deep, int deepLimit, SiteEntity site, int timeout, boolean readSubDomain){
-        if (pageUrl.endsWith("/")){
-            this.pageUrl = pageUrl;
-        } else{
-            this.pageUrl = pageUrl + "/";
-        }
+
+public PageParser(String pageUrl, HashSet<String> linksSet,
+                  ForkJoinPool pool,
+                  SiteRepository siteRep, PageRepository pageRep,
+                  LemmaRepository lemmaRep, IndexRepository indexRep,
+                  int deep, SiteEntity site, Config config){
+        this.pageUrl = pageUrl;
         this.linksSet = linksSet;
         this.pool = pool;
         this.siteRep = siteRep;
@@ -54,31 +50,21 @@ public class PageParser extends RecursiveAction {
         this.lemmaRep = lemmaRep;
         this.indexRep = indexRep;
         this.deep = deep;
-        this.deepLimit = deepLimit;
         this.site = site;
-        this.timeout = timeout;
         if (deep == 1){
             linksSet.add(pageUrl);
             this.protocol = getProtocol(pageUrl);
         }
+        this.config = config;
     }
 
     //@SneakyThrows
     @Override
     public void compute(){
-
-        System.out.println("thread: " + Thread.currentThread().getName());
-        System.out.println(this);
-        try{
-            Thread.sleep(timeout);
-        }catch (Exception e){
-            System.out.println("не проснулся. compute() ");
-        }
-
         try {
             readPage();
         }catch (Exception e){
-            System.out.println("**** Ошибка парсинга. ");
+            System.out.println("**** Ошибка при работе со страницей ." + pageUrl);
             e.printStackTrace();
         }
     }
@@ -86,7 +72,7 @@ public class PageParser extends RecursiveAction {
 
     private void readPage(){
 //если deep=1 то это главная страница, значит нужно создать кроме page еще и  site
-        if (site == null){
+        if (deep == 1){
             site = new SiteEntity();
         }
         PageEntity page = new PageEntity();
@@ -95,96 +81,43 @@ public class PageParser extends RecursiveAction {
 
         //непроснувшийся поток:
         try {
-            Thread.sleep(timeout);
+            Thread.sleep(config.getTimeout());
         } catch (InterruptedException e){
-            if (deep == 1){
-                site.setUrl(pageUrl);
-                site.setStatus(IndexingStatus.FAILED.toString());
-                site.setName("-");
-                site.setStatusTime(LocalDateTime.now());
-                site.setLastError("Пото не вышел из сна. InterruptedException. " + e.getMessage());
-                siteRep.save(site);
-            }
-            else{
-                page.setSiteId(site);
-                page.setContent("-");
-                page.setCode(520); //неизвестная ошибка
-                page.setPath(pageUrl);
-                pageRep.save(page);
-
-                site.setStatusTime(LocalDateTime.now());
-                site.setLastError("Пото не вышел из сна. InterruptedException. " + e.getMessage());
-                siteRep.save(site);
-            }
+            onInterruptedException(e);
             return;
         }
 
-        //ошибкаполучения siteResponse
+        //ошибка получения siteResponse
         Connection.Response siteResponse = null;
         try {
             siteResponse = getResponse();
-        }catch (Exception e){
-            System.out.println("Ошибка получения объекта SiteResponse");
         }
-
-        //если http код "отрицательный"
-        if (siteResponse.statusCode() >=400){
-            if (deep == 1){
-                //главная стр. Сделать запись site
-                site.setUrl(pageUrl);
-                site.setLastError("Сайт недоступен. Ошибка: " + siteResponse.statusCode());
-                site.setStatusTime(LocalDateTime.now());
-                site.setStatus(IndexingStatus.FAILED.toString());
-                site.setName("-");
-                siteRep.save(site);
-            }
-            else{
-                //не главная. Сделать запись page
-                page.setSiteId(site);
-                page.setCode(siteResponse.statusCode());
-                pageRep.save(page);
-            }
+        catch (IOException e){
+            onSiteResponseIsNull(e);
             return;
         }
 
-        //ответ от сайта получен
+        //если http код "не положительный"
+        if (siteResponse.statusCode() >=400){
+            onHttpTroubleCode(siteResponse.statusCode());
+            return;
+        }
+
+        //далее считаем, что ответ от сайта получен
         StringBuilder content = new StringBuilder();
 
         //при ошибке парсинга:
         try{
             document = siteResponse.parse();
-        }catch (IOException e){
-            if (deep == 1){
-                //Главная. Сделать запись site
-                site.setStatus(IndexingStatus.FAILED.toString());
-                site.setUrl(pageUrl);
-                site.setName("-");
-                site.setLastError("Ошибка парсинга. Не удалось получить Jsoup.nodes.Document. Ошибка: " + e.getMessage());
-                siteRep.save(site);
-            }
-            else {
-                //не главная.
-                site.setStatusTime(LocalDateTime.now());
-                site.setLastError("Ошибка парсинга чтраницы \"" + pageUrl + "\". Не удалось получить Jsoup.nodes.Document." +
-                        " Ошибка: " + e.getMessage());
-                siteRep.save(site);
-
-                page.setSiteId(site);
-                page.setPath(getLocalUrl(pageUrl));
-                page.setCode(520);
-                page.setContent("-");
-                pageRep.save(page);
-            }
+        }
+        catch (IOException e){
+            onParsingError(e);
             return;
         }
 
         //сайт прочитан и Document получен.
         if (deep == 1 ){
-            site.setStatus(IndexingStatus.INDEXING.toString());
-            site.setStatusTime(LocalDateTime.now());
-            site.setUrl(pageUrl);
-            site.setName( getSiteName(document) );
-            siteRep.save(site);
+            saveCurrentSite();
         }
 
         //получить контент (без тегов логично)
@@ -195,42 +128,31 @@ public class PageParser extends RecursiveAction {
 
         //получить ссылки и проверить на уникальность
         elements = document.select("a");
-
-         List<String> linkOnPage = new ArrayList<>();
+        List<String> linkOnPage = new ArrayList<>();
         for (Element item : elements){
-            if (item.attribute(("href"))==null){
+            if (item.attribute("href") == null){
                 continue;
             }
             String link = item.attribute("href").getValue();
-            //поскольку многопоточность, то нужно при проверке уникальности ссылки тут же ее добавить. синхронизированно.
             link = getFullLink(link);
             if (!isCorrectLink(link) || isSubdomain(link)){
                 continue;
             }
-            if (linksSet.add( link )){
-                linkOnPage.add( link );
+            synchronized (linksSet) {
+                if (linksSet.add(link)) {
+                    linkOnPage.add(link);
+                }
             }
         }
 
         //сохранить собранную о странице информацию
-        page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
-        page.setContent(content.toString());
-        page.setSiteId(site);
-        page.setCode(siteResponse.statusCode());
-        try {
-            System.out.println("Проверка наличия " + page.getPath() + " " + pageRep.existUrlWithSite(site.getId(), page.getPath())  );
-            pageRep.save(page);
-        }catch (Exception e){
-            System.out.println("Ошибка сохранения " + page.getPath() + " ");
-        }
-
+        saveCurrentPage(siteResponse.statusCode(), content.toString());
 
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
-        if (deep < deepLimit){
+        if (deep < config.getDeepLimit()){
             for (String link : linkOnPage){
                 PageParser pageParser = new PageParser(link, linksSet, pool,
-                        siteRep, pageRep, lemmaRep , indexRep, deep + 1, deepLimit, site, timeout, readSubDomain);
-                System.out.println(">>>>>>>>>>> в работу отправлена ссылка " + link);
+                        siteRep, pageRep, lemmaRep , indexRep, deep + 1, site, config);
                 pool.submit(pageParser).fork();
             }
         }
@@ -302,7 +224,6 @@ public class PageParser extends RecursiveAction {
 
         //ссылка без протокола
         if ((url.startsWith("//"))){
-            //return getProtocol(site.getUrl()) + url;
             return (protocol + url).substring(site.getUrl().length());
         }
 
@@ -329,17 +250,12 @@ public class PageParser extends RecursiveAction {
         else if (link.startsWith("/")) {
             rez = site.getUrl() + link.substring(1);
         }
-
-        if (!rez.endsWith("/")){
-            return rez.concat("/");
-        }else {
-            return rez;
-        }
+        return rez;
     }
 
     //является ли поддоменом (домен- адрес сайта)
     private boolean isSubdomain(String url){
-        if (readSubDomain) {
+        if (config.isReadSubDomain()) {
             return false;
         }
 
@@ -353,6 +269,137 @@ public class PageParser extends RecursiveAction {
     //получить ответ от сйта в виде Connection.Response
     @SneakyThrows
     private Connection.Response getResponse() throws IOException {
-        return Jsoup.connect(pageUrl).execute();
+        return Jsoup.connect(pageUrl)
+                .ignoreHttpErrors(true)
+                .userAgent(config.getUserAgent())
+                .referrer(config.getReferer())
+                .timeout(config.getResponseWait())
+                .execute();
+    }
+
+    //*сохранение в БД при ошибках или положительных событиях:*/
+    //непроснувшийся поток
+    private void onInterruptedException(Exception e){
+        if (deep == 1){
+            site.setUrl(pageUrl);
+            site.setName("-");
+            site.setStatus(IndexingStatus.FAILED.toString());
+            site.setStatusTime(LocalDateTime.now());
+            site.setLastError("Поток не вышел из сна. InterruptedException. " + e.getMessage());
+            siteRep.save(site);
+        }
+        else{
+            PageEntity page = new PageEntity();
+            page.setSiteId(site);
+            page.setContent("-");
+            page.setCode(520); //неизвестная ошибка
+            page.setPath(pageUrl);
+            pageRep.save(page);
+
+            site.setStatusTime(LocalDateTime.now());
+            site.setLastError("Пото не вышел из сна. InterruptedException. " + e.getMessage());
+            siteRep.save(site);
+        }
+    }
+
+    //не удалось получить SiteResponse
+    private void onSiteResponseIsNull(Exception e){
+        System.out.println("Ошибка получения объекта SiteResponse. (Возможны проблемы с сертификацией.) " + e.getMessage());
+        String msg = "Ошибка получения объекта SiteResponse. (Возможны проблемы с сертификацией.) " +
+                e.getMessage();
+        System.out.println(msg);
+        if (deep == 1){
+            site.setStatusTime(LocalDateTime.now());
+            site.setUrl(pageUrl);
+            site.setName("-");
+            site.setStatus(IndexingStatus.FAILED.toString());
+            site.setLastError(msg);
+            siteRep.save(site);
+        }
+        else{
+            site.setStatusTime(LocalDateTime.now());
+            site.setStatus(IndexingStatus.FAILED.toString());
+            site.setLastError(msg);
+            siteRep.save(site);
+
+            PageEntity page = new PageEntity();
+            page.setContent("-");
+            page.setPath(pageUrl);
+            page.setCode(520);
+            page.setSiteId(site);
+            pageRep.save(page);
+        }
+    }
+
+    //код http >=400
+    private void onHttpTroubleCode(int code){
+        System.out.println("Сайт недоступен. Код ошибки: " + code);
+        if (deep == 1){
+            site.setUrl(pageUrl);
+            site.setLastError("Сайт недоступен. Код ошибки: " + code);
+            site.setStatusTime(LocalDateTime.now());
+            site.setStatus(IndexingStatus.FAILED.toString());
+            site.setName("-");
+            siteRep.save(site);
+        }
+        else{
+            PageEntity page = new PageEntity();
+            page.setCode(code);
+            page.setContent("-");
+            page.setPath(pageUrl);
+            page.setSiteId(site);
+            pageRep.save(page);
+        }
+    }
+
+    //ошибка парсинга
+    private void onParsingError(Exception e){
+        System.out.println("Ошибка парсинга. Не удалось получить Jsoup.nodes.Document. Ошибка: " + e.getMessage());
+        if (deep == 1){
+            site.setLastError("Ошибка парсинга. Не удалось получить Jsoup.nodes.Document. Ошибка: " + e.getMessage());
+            site.setName("-");
+            site.setStatus(IndexingStatus.FAILED.toString());
+            site.setStatusTime(LocalDateTime.now());
+            site.setUrl(pageUrl);
+            siteRep.save(site);
+        }
+        else {
+            site.setLastError("Ошибка парсинга чтраницы \"" + pageUrl + "\". Не удалось получить Jsoup.nodes.Document." +
+                    " Ошибка: " + e.getMessage());
+            site.setStatusTime(LocalDateTime.now());
+            siteRep.save(site);
+
+            PageEntity page = new PageEntity();
+            page.setCode(520);
+            page.setContent("-");
+            page.setPath(getLocalUrl(pageUrl));
+            page.setSiteId(site);
+            pageRep.save(page);
+        }
+    }
+
+    //сохранение текущего сайта при отсутствии ошибок
+    private void saveCurrentSite(){
+        site.setStatus(IndexingStatus.INDEXING.toString());
+        site.setName( getSiteName(document) );
+        site.setStatusTime(LocalDateTime.now());
+        site.setUrl(pageUrl);
+        siteRep.save(site);
+    }
+
+    //сохранить текущуюю страницу при отсутствии ошибок
+    private void saveCurrentPage(int code, String content){
+        PageEntity page = new PageEntity();
+        page.setCode(code);
+        //page.setContent(content);
+        page.setContent("thread " + Thread.currentThread().getName() + "  time " + LocalDateTime.now());
+        //page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
+        page.setPath(getLocalUrl(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName()));
+        page.setSiteId(site);
+        try {
+            pageRep.save(page);
+        }catch (Exception e){
+            System.out.println("Ошибка сохранения " + page.getPath() + " ");
+        }
     }
 }

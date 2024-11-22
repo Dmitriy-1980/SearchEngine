@@ -17,7 +17,7 @@ public class SiteServiceImpl implements SiteService {
     private final JdbcTemplate jdbcTemplate;
 
 
-    //добавить сайт по его
+    //добавить сайт по его !!!!!!!!
     @Override
     public boolean addSite(String url, String name) {
         SiteEntity site = new SiteEntity();
@@ -34,22 +34,35 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    //получить сайт по его URL
+
+
+    //получить сайт по его URL и вернуть Optional
     @Override
-    public Optional<SiteEntity> getByUrl(String url) {
-        SiteEntity site = (SiteEntity) siteRep.findByUrl(url);
-        if (site == null){
-            return Optional.empty();
-        }else {
-            return Optional.of(site);
-        }
+    public Optional<SiteEntity> getOptnlByUrl(String url) {
+        return Optional.of(siteRep.findByUrl(url));
     }
 
-    //получить сайт по его id
+    //получить сайт по его URL и вернуть Entity
     @Override
-    public Optional<SiteEntity> getById(int id) {
+    public SiteEntity getEntityByUrl(String url) {
+        return siteRep.findByUrl(url);
+    }
+
+
+
+    //получить сайт по его id и вернуть Optional
+    @Override
+    public Optional<SiteEntity> getOptnlById(int id) {
         return siteRep.findById(id);
     }
+
+    //получить сайт по его Id и вернуть entity
+    @Override
+    public SiteEntity getEntityById(int id){
+        return siteRep.getEntytyById(id);
+    }
+
+
 
     //обновить сайт по его url
     @Override
@@ -110,42 +123,15 @@ public class SiteServiceImpl implements SiteService {
         }
     }
 
-    //выполнить переданный запрос
-//    @Override
-//    public ResponseEntity<> executeQuery(String query) {
-//        ResponseEntity response;
-//        try{
-//            return new ResponseEntity<>(siteRep.exequteQuery(query) , HttpStatus.OK);
-//        } catch (Exception e){
-//            e.printStackTrace();
-//            return new ResponseEntity<>("ошибка поиска. " , HttpStatus.valueOf(520))
-//        }
-//    }
+    //проверить наличие сайтов у которых индексация еще идет
+    @Override
+    public boolean existIndexing(){
+        return siteRep.existIndexing();
+    }
 
-    //преобразование "сайта со статусом типа VARCHAR" в "сайт со статусом типа IbdexingStatus"
-//    Site getSite(ResultSet rs){
-//        Site site = new Site();
-//        try{
-//            site.setId( rs.getInt("id") );
-//            String status = rs.getString("status");
-//            if (status.equals("INDEXING")){
-//                site.setStatus(IndexingStatus.INDEXING);
-//            } else if (status.equals("INDEXED")) {
-//                site.setStatus(IndexingStatus.INDEXED);
-//            }else {
-//                site.setStatus(IndexingStatus.FAILED);
-//            }
-//            LocalDateTime localDateTime = rs.getTime("status_time").toLocalTime().
-//                    atDate( rs.getDate("status_time").toLocalDate() );
-//            site.setStatusTime( localDateTime );
-//            site.setLastError( rs.getString("last_error") );
-//            site.setUrl( rs.getString("url") );
-//            site.setName( rs.getString("name") );
-//            return site;
-//        }catch (SQLException e){
-//            return null;
-//        }
-//    }
-
-
+    //проверить наличие сайта по url
+    @Override
+    public boolean existUrl(String url){
+        return siteRep.existUrl(url);
+    }
 }

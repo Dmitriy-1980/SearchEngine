@@ -23,33 +23,38 @@ public class ApiController {
     private final Indexing indexing;
 
 
-    //запуск полной индксации всех указанных сайтов
-    @GetMapping("/startindexing")
-    public String startindexing(){
-        if ( indexing.start() ) {
+    //запуск полной индксации всех указанных в конфигурации сайтов
+    @GetMapping("/startIndexing")
+    public String startIndexing(){
+        if ( indexing.startFromList() ) {
             return "{'result': true}";
         } else {
             return "{'result': false, 'error': \"Индексация уже запущена\"";}
         }
 
 
-    @GetMapping("/stopindexing")
+    @GetMapping("/stopIndexing")
     public String stopIndexing(){
         if (indexing.stop()){
             return "{'result': true}";
         }else {
-            return "{'result':false, 'error': \"индексация не запущена\" }";
+            return "{'result':false, 'error': \"Индексация не запущена\" }";
         }
     }
 
-    //добавить одну, конкретную страницу. URL передается в параметре
-    @GetMapping("/indexPage")
-    private String indexPage(@RequestBody String url){
-        //todo не знаю пока как сделать механизм
-        // { 'resulr': true }
+    //добавить сайт для индексации
+    @PostMapping(value = "/indexPage")
+    private String indexPage(@RequestParam("url") String url){
+        if (indexing.startAdditionalIndexing(url)){
+            return "{ 'result': true }";
+        }
+        else {
+            return "{ 'result': false, \"Индексация уже запущена\" }";
+        }
+        //todo пояснение куратора противоречит ТЗ. уточнить
+        // по ТЗ воттакой ответпредусмотрен. Отсыда, вроде как, и логика иная прослеживается.
         // { 'result': false, "Данная страница находится за пределами сайтов,
         //                         указанных в конфигурационном файле" }
-        return null;
     }
 
     @GetMapping("/statistics")

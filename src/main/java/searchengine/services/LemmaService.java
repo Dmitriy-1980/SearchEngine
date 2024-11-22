@@ -4,7 +4,6 @@ import searchengine.model.LemmaEntity;
 
 import java.util.Optional;
 
-//@Service
 public interface LemmaService {
 
     //добавить лемму
@@ -19,6 +18,14 @@ public interface LemmaService {
     //изменить лемму
     boolean updateLemma(LemmaEntity lemma);
 
-    //получить лемму по ее ID
-    Optional<LemmaEntity> getById(int id);
+    //получить лемму по ее ID (Optional)
+    Optional<LemmaEntity> getOptnlById(int id);
+    //получить лемму по ее ID (Entity)
+    LemmaEntity getEntityById(int id);
+
+    //кол лемм по указанному id сайта
+    int getCountBySiteId(int id);
+
+    //удалить все леммы по ID сайта
+    void delAllBySiteId(int id);
 }

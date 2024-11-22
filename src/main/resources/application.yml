@@ -6,18 +6,18 @@ indexing-settings:
   limit: 50 #макс кол результатов поиска которые нужно вывести
   userAgent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
   referer: http://www.google.
-  responseWait : 3000 #ожидание ответа в мс
+  responseWait : 10000 #ожидание ответа в мс
   timeout: 1000 #таймаут между обращениями к сайт
   readSubDomain: true #обрабатывать ли поддомены
   sites:
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-#    - url: https://www.skillbox.ru
-#      name: Skillbox
+    - url: https://www.skillbox.ru
+      name: Skillbox
     - url: https://www.playback.ru
       name: PlayBack.Ru
-#    - url: https://mail.ru/
-#      name: mailRu
+    - url: https://mail.ru/
+      name: mailRu
 
 server:
   port: 8085

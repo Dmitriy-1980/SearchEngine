@@ -1,22 +1,20 @@
 package searchengine.mechanics;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import searchengine.config.Config;
 import searchengine.config.Site;
+import searchengine.model.IndexingStatus;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
 import searchengine.repositories.LemmaRepository;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
 
-import java.util.HashSet;
+import java.time.LocalDateTime;
+import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
 @Component
@@ -28,33 +26,108 @@ public class Indexing {
     private final PageRepository pageRep;
     private final LemmaRepository lemmaRep;
     private final IndexRepository indexRep;
+    private final HashMap<String,ForkJoinPool> poolList; //список запущенных пулов. Каждому сайту свой
 
-
-    private boolean isRunning = false;
-    private HashSet<String> linksSet;
+    private Boolean isRunning = false;
     private ForkJoinPool pool;
 
 
-    //запустить индексацию
-    public boolean start(){
-        if (isRunning){
+
+    //запустить индексацию по списку из конфигурации в application.yml
+    public boolean startFromList(){
+        long start = System.currentTimeMillis();
+        if (notMayStart()){
             return false;
         }
-        pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
-
-
-        linksSet = new HashSet<>();
-        isRunning = true;
+        System.out.println("Индексация запускается. " + LocalDateTime.now());
+        config.checkDuplicate();
         for (Site site : config.getSites()){
-            clearSiteData(site.getUrl());
-            PageParser pageParser = new PageParser(site.getUrl(), linksSet,
-                    pool, siteRep, pageRep ,
-                    lemmaRep , indexRep, 1, config.getDeepLimit(), null ,
-                    config.getTimeout(), config.isReadSubDomain());
-            pool.submit(pageParser);
+            goIndex(site);//запуск индексации
+//            HashSet<String> linksSet = new HashSet<>(); //коллекция ссылок сайта
+//            site.setUrl( site.getUrl() );
+//
+//            ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+//            clearSiteData( site.getUrl() );
+//            PageParser pageParser = new PageParser(site.getUrl(), linksSet, pool,
+//                    siteRep, pageRep, lemmaRep , indexRep,
+//                    1, null, config);
+//            pool.submit(pageParser);
+//            poolList.put(site.getUrl(), pool);
         }
-        System.out.println("start " + pool);
+        waitOfIndexingEnd();//ожидание окончания индексации
+//        //ожидание окончания индексации
+//        while (true){
+//            Iterator< Map.Entry<String,ForkJoinPool> > iterator = poolList.entrySet().iterator();
+//            while (iterator.hasNext()){
+//                Map.Entry<String, ForkJoinPool> entry = iterator.next();
+//                if (entry.getValue().getQueuedTaskCount() == 0 && entry.getValue().isQuiescent()){
+//                    SiteEntity siteEntity = siteRep.findByUrl(entry.getKey());
+//                    siteEntity.setStatus( IndexingStatus.INDEXED.toString() );
+//                    siteRep.save(siteEntity);
+//                    iterator.remove();
+//                }
+//            }
+//            if (poolList.isEmpty()){
+//                poolList.clear();
+//                break;
+//            }
+//        }
+        System.out.println("Индексация закончена " + LocalDateTime.now() + " - " +
+                (System.currentTimeMillis() - start));
+        isRunning = false;
         return true;
+    }
+
+    //запуск индексации дополнительног осайта
+    public boolean startAdditionalIndexing(String url){
+        long start = System.currentTimeMillis();
+        if (notMayStart()){
+            return false;
+        }
+
+        Site site = new Site();
+        site.setUrl(url);
+
+        goIndex(site);
+        waitOfIndexingEnd();
+
+        System.out.println("Индексация закончена " + LocalDateTime.now() + " - " +
+                (System.currentTimeMillis() - start));
+        isRunning = false;
+        return true;
+    }
+
+    //индексация одного сайта изсписка
+    private void goIndex(Site site){
+        HashSet<String> linksSet = new HashSet<>(); //коллекция ссылок сайта
+        site.setUrl( site.getUrl() );
+        ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+        clearSiteData( site.getUrl() );
+        PageParser pageParser = new PageParser(site.getUrl(), linksSet, pool,
+                siteRep, pageRep, lemmaRep , indexRep,
+                1, null, config);
+        pool.submit(pageParser);
+        poolList.put(site.getUrl(), pool);
+    }
+
+    //ожидание окончания индексации
+    private void waitOfIndexingEnd(){
+        while (true){
+            Iterator< Map.Entry<String,ForkJoinPool> > iterator = poolList.entrySet().iterator();
+            while (iterator.hasNext()){
+                Map.Entry<String, ForkJoinPool> entry = iterator.next();
+                if (entry.getValue().getQueuedTaskCount() == 0 && entry.getValue().isQuiescent()){
+                    SiteEntity siteEntity = siteRep.findByUrl(entry.getKey());
+                    siteEntity.setStatus( IndexingStatus.INDEXED.toString() );
+                    siteRep.save(siteEntity);
+                    iterator.remove();
+                }
+            }
+            if (poolList.isEmpty()){
+                poolList.clear();
+                break;
+            }
+        }
     }
 
     //остановить индексацию
@@ -62,21 +135,28 @@ public class Indexing {
         if (!isRunning){
             return false;
         }
-        pool.shutdownNow();
+
         isRunning = false;
-        System.out.println("stop " + pool);
+        //команда на завершение пулов
+        for (Map.Entry<String,ForkJoinPool> entry : poolList.entrySet()){
+            entry.getValue().shutdown();
+        }
+        //ожидаение завершения всех пулов.
+        while (true){
+            boolean ended = true;
+            for (Map.Entry<String,ForkJoinPool> entry : poolList.entrySet()){
+                if (!entry.getValue().isShutdown()){
+                    ended = false;
+                }
+            }
+            if (ended) {break;}
+        }
+        poolList.clear();
         return true;
     }
 
     //удалить все данные указанного сайта
-    private void clearSiteData(String sitePath){
-        String url;
-        if (sitePath.endsWith("/")){
-            url = sitePath;
-        }else{
-            url = sitePath + "/";
-        }
-
+    private void clearSiteData(String url){
         if (siteRep.existUrl(url)){
             int siteId = siteRep.findByUrl(url).getId();
             pageRep.delAllBySiteId( siteId );
@@ -84,5 +164,14 @@ public class Indexing {
         }
     }
 
-
+    //проверка идет ли уже синхронизация
+    private synchronized boolean  notMayStart(){
+        if (isRunning){
+            return true;
+        }
+        else{
+            isRunning = true;
+            return false;
+        }
+    }
 }

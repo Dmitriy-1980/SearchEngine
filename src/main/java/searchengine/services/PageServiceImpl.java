@@ -41,7 +41,7 @@ public class PageServiceImpl implements PageService {
 
     //обновить страницу
     @Override
-    public boolean upate(PageEntity page) {
+    public boolean update(PageEntity page) {
         try {
             pageRep.save(page);
             return true;
@@ -75,30 +75,17 @@ public class PageServiceImpl implements PageService {
         }
     }
 
-    @Override//СИЛЬНО ЗАПУИАНО. ПОКА НЕ ЗНАЮ КАК СДЕЛАТЬ
-    //вообще не тут надо. Надо из контроллера в обработчик, (в механике) а оттуда сюда на сохранение обычным порядком.
-    public boolean addThisPage(String pageUrl) {
-//        String siteUrl = getSiteUrl(pageUrl);
-//        List<Site> sites = siteRep.findIdByUrl(siteUrl);
-//        if ( sites.isEmpty() ){
-//            return false;
-//        }
-//        HashMap<String, ReadPageResult> map;
-//        ExecutorService pool = new
-//        ReadPage readPage = new ReadPage(
-//                siteUrl, pageUrl, config.getDeepLimit(), config.getDeepLimit(), map,
-//        );
-        //
-//        Page page = new Page();
-//        page.setSiteId(sites.get(0));
-//        page.setPath(pageUrl);
-//        page.set
-        return false;
+    //кол страниц по заданному id сайта
+    @Override
+    public Integer getCountBySiteId(int siteId){
+        return pageRep.getCountBySiteId(siteId);
     }
 
-    //выделить из url адреса сайта
-    private String getSiteUrl(String url){
-        int div = url.indexOf("[a-z]/[a-z]");
-        return url.substring(0, div);
+    //проверить наличие по path
+    @Override
+    public boolean existUrlWithSite(int siteId, String path ){
+        return pageRep.existUrlWithSite(siteId, path);
     }
+
+
 }
