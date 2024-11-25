@@ -9,6 +9,9 @@ public interface PageService {
     //добавить страницу
     Optional<PageEntity> addPage(PageEntity page);
 
+    //сохранить странцу как сущность
+    void addEntity(PageEntity page);
+
     //получить страницу по id страницы
     Optional<PageEntity> getById(int pageId);
 

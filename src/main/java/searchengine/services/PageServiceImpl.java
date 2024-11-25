@@ -28,6 +28,16 @@ public class PageServiceImpl implements PageService {
         }
     }
 
+    //Добавить сущность
+    @Override
+    public void addEntity(PageEntity page){
+        try {
+            pageRep.save(page);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
     //получить страницу по ее ID
     @Override
     public Optional<PageEntity> getById(int pageId) {

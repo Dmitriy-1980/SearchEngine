@@ -6,16 +6,18 @@ import java.util.Optional;
 
 public interface SiteService {
 
-    //добавить сайт по его url
-    boolean addSite(String url, String name);
+    //добавить сайт entity
+    void addEntity(SiteEntity site);
 
     //найти сайт по его url (вернуть Optional)
     Optional<SiteEntity> getOptnlByUrl(String url);
+
     //найти сайт по его url (вернуть Entity)
     SiteEntity getEntityByUrl(String url);
 
     //найти сайт по id (вернуть Optional)
     Optional<SiteEntity> getOptnlById(int id);
+
     //найти сайт по id (вернуть Entity)
     SiteEntity getEntityById(int id);
 

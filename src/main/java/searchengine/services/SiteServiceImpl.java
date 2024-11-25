@@ -17,24 +17,15 @@ public class SiteServiceImpl implements SiteService {
     private final JdbcTemplate jdbcTemplate;
 
 
-    //добавить сайт по его !!!!!!!!
+
     @Override
-    public boolean addSite(String url, String name) {
-        SiteEntity site = new SiteEntity();
-        site.setName(name);
-        site.setStatus(IndexingStatus.INDEXING.toString());
-        site.setStatusTime(LocalDateTime.now());
-        site.setUrl(url);
-        try {
+    public void addEntity(SiteEntity site){
+        try{
             siteRep.save(site);
-            return true;
-        } catch (Exception e){
+        }catch (Exception e){
             e.printStackTrace();
-            return false;
         }
     }
-
-
 
     //получить сайт по его URL и вернуть Optional
     @Override

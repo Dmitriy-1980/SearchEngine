@@ -9,10 +9,10 @@ import org.jsoup.select.Elements;
 
 import searchengine.config.Config;
 import searchengine.model.*;
-import searchengine.repositories.IndexRepository;
-import searchengine.repositories.LemmaRepository;
-import searchengine.repositories.PageRepository;
-import searchengine.repositories.SiteRepository;
+import searchengine.services.IndexServiceImpl;
+import searchengine.services.LemmaServiceImpl;
+import searchengine.services.PageServiceImpl;
+import searchengine.services.SiteServiceImpl;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -30,25 +30,24 @@ public class PageParser extends RecursiveAction {
     private String protocol; // протокол запроса (в виде http: или https: )
     private final Config config;
 
-    private final SiteRepository siteRep;
-    private final PageRepository pageRep;
-    private final LemmaRepository lemmaRep;
-    private final IndexRepository indexRep;
-
+    private final SiteServiceImpl siteService;
+    private final PageServiceImpl pageService;
+    private final LemmaServiceImpl lemmaService;
+    private final IndexServiceImpl indexService;
 
 
 public PageParser(String pageUrl, HashSet<String> linksSet,
                   ForkJoinPool pool,
-                  SiteRepository siteRep, PageRepository pageRep,
-                  LemmaRepository lemmaRep, IndexRepository indexRep,
+                  SiteServiceImpl siteService, PageServiceImpl pageService,
+                  LemmaServiceImpl lemmaService, IndexServiceImpl indexService,
                   int deep, SiteEntity site, Config config){
         this.pageUrl = pageUrl;
         this.linksSet = linksSet;
         this.pool = pool;
-        this.siteRep = siteRep;
-        this.pageRep = pageRep;
-        this.lemmaRep = lemmaRep;
-        this.indexRep = indexRep;
+        this.siteService = siteService;
+        this.pageService = pageService;
+        this.lemmaService = lemmaService;
+        this.indexService = indexService;
         this.deep = deep;
         this.site = site;
         if (deep == 1){
@@ -152,7 +151,7 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
         if (deep < config.getDeepLimit()){
             for (String link : linkOnPage){
                 PageParser pageParser = new PageParser(link, linksSet, pool,
-                        siteRep, pageRep, lemmaRep , indexRep, deep + 1, site, config);
+                        siteService, pageService, lemmaService , indexService, deep + 1, site, config);
                 pool.submit(pageParser).fork();
             }
         }
@@ -286,7 +285,7 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             site.setStatus(IndexingStatus.FAILED.toString());
             site.setStatusTime(LocalDateTime.now());
             site.setLastError("Поток не вышел из сна. InterruptedException. " + e.getMessage());
-            siteRep.save(site);
+            siteService.addEntity(site);
         }
         else{
             PageEntity page = new PageEntity();
@@ -294,11 +293,11 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             page.setContent("-");
             page.setCode(520); //неизвестная ошибка
             page.setPath(pageUrl);
-            pageRep.save(page);
+            pageService.addEntity(page);
 
             site.setStatusTime(LocalDateTime.now());
             site.setLastError("Пото не вышел из сна. InterruptedException. " + e.getMessage());
-            siteRep.save(site);
+            siteService.addEntity(site);
         }
     }
 
@@ -314,20 +313,20 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             site.setName("-");
             site.setStatus(IndexingStatus.FAILED.toString());
             site.setLastError(msg);
-            siteRep.save(site);
+            siteService.addEntity(site);
         }
         else{
             site.setStatusTime(LocalDateTime.now());
             site.setStatus(IndexingStatus.FAILED.toString());
             site.setLastError(msg);
-            siteRep.save(site);
+            siteService.addEntity(site);
 
             PageEntity page = new PageEntity();
             page.setContent("-");
             page.setPath(pageUrl);
             page.setCode(520);
             page.setSiteId(site);
-            pageRep.save(page);
+            pageService.addEntity(page);
         }
     }
 
@@ -340,7 +339,7 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             site.setStatusTime(LocalDateTime.now());
             site.setStatus(IndexingStatus.FAILED.toString());
             site.setName("-");
-            siteRep.save(site);
+            siteService.addEntity(site);
         }
         else{
             PageEntity page = new PageEntity();
@@ -348,7 +347,7 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             page.setContent("-");
             page.setPath(pageUrl);
             page.setSiteId(site);
-            pageRep.save(page);
+            pageService.addEntity(page);
         }
     }
 
@@ -361,20 +360,20 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             site.setStatus(IndexingStatus.FAILED.toString());
             site.setStatusTime(LocalDateTime.now());
             site.setUrl(pageUrl);
-            siteRep.save(site);
+            siteService.addEntity(site);
         }
         else {
             site.setLastError("Ошибка парсинга чтраницы \"" + pageUrl + "\". Не удалось получить Jsoup.nodes.Document." +
                     " Ошибка: " + e.getMessage());
             site.setStatusTime(LocalDateTime.now());
-            siteRep.save(site);
+            siteService.addEntity(site);
 
             PageEntity page = new PageEntity();
             page.setCode(520);
             page.setContent("-");
             page.setPath(getLocalUrl(pageUrl));
             page.setSiteId(site);
-            pageRep.save(page);
+            pageService.addEntity(page);
         }
     }
 
@@ -384,7 +383,8 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
         site.setName( getSiteName(document) );
         site.setStatusTime(LocalDateTime.now());
         site.setUrl(pageUrl);
-        siteRep.save(site);
+        //siteRep.save(site);
+        siteService.addEntity(site);
     }
 
     //сохранить текущуюю страницу при отсутствии ошибок
@@ -397,7 +397,7 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
         page.setPath(getLocalUrl(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName()));
         page.setSiteId(site);
         try {
-            pageRep.save(page);
+            pageService.addEntity(page);
         }catch (Exception e){
             System.out.println("Ошибка сохранения " + page.getPath() + " ");
         }
