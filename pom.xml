@@ -13,6 +13,15 @@
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
 
+    <!--подключение определенного репозитория-->
+    <repositories>
+        <repository>
+            <id>skillbox-gitlab</id>
+            <url>https://gitlab.skillbox.ru/api/v4/projects/263574/packages/maven</url>
+        </repository>
+    </repositories>
+
+
     <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-parent -->
     <!-- ~родительский фрейм. Если не переопределять версии, то от него берутся все нужные версии -->
     <parent>
@@ -23,6 +32,34 @@
 
 
     <dependencies>
+        <!-- зависимости из отдельно подключеного репозитория -->
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>morph</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.analysis</groupId>
+            <artifactId>morphology</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>dictionary-reader</artifactId>
+            <version>1.5</version>
+        </dependency>
+        <dependency>
+        <groupId>org.apache.lucene.morphology</groupId>
+        <artifactId>english</artifactId>
+        <version>1.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.lucene.morphology</groupId>
+            <artifactId>russian</artifactId>
+            <version>1.5</version>
+        </dependency>
+
+
 
         <!-- подтягивает библиотеки необходимые для MVC приложений -->
         <dependency>
@@ -74,6 +111,8 @@
             <artifactId>jsoup</artifactId>
             <version>1.18.1</version>
         </dependency>
+
+
 
         <!-- для тестов: -->
 

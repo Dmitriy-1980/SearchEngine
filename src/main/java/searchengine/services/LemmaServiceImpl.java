@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import searchengine.model.LemmaEntity;
 import searchengine.repositories.LemmaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -14,13 +15,12 @@ public class LemmaServiceImpl implements LemmaService{
 
     //добавить лемму
     @Override
-    public boolean addLemma(LemmaEntity lemma) {
+    public LemmaEntity saveLemma(LemmaEntity lemma) {
         try{
-            lemmaRep.save(lemma);
-            return true;
+            return lemmaRep.save(lemma);
         }catch (Exception e){
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
 
@@ -48,6 +48,12 @@ public class LemmaServiceImpl implements LemmaService{
         }
     }
 
+    //удалить все леммы по url сайта
+    @Override
+    public void delAllBySiteUrl(String siteUrl){
+        lemmaRep.delAllBySiteUrl(siteUrl);
+    }
+
     //изменить лемму
     @Override
     public boolean updateLemma(LemmaEntity lemma) {
@@ -72,6 +78,16 @@ public class LemmaServiceImpl implements LemmaService{
         return lemmaRep.getEntityById(id);
     }
 
+    //получить лемму по самому слову
+    public LemmaEntity getEntityByLemma(String word){
+        return lemmaRep.getEntityByLemma(word);
+    }
+
+//    //получить frequency по имени (лемме)
+//    public int getCountByName(String name){
+//        lemmaRep.
+//    }
+
     //кол лемм по указанному id сайта
     @Override
     public int getCountBySiteId(int id){
@@ -79,9 +95,26 @@ public class LemmaServiceImpl implements LemmaService{
     }
 
     //удалить все леммы по ID сайта
+    @Override
     public void delAllBySiteId(int id){
         lemmaRep.delAllBySiteId(id);
     }
 
+    //удалить все
+    @Override
+    public void clear(){
+        lemmaRep.clear();
+    }
+
+    //найти id лемм из запроса и выстроить по убыванию частоты
+    @Override
+    public List<Integer> getIdList(String listLemma){
+        return lemmaRep.getIdList(listLemma);
+    }
+
+    @Override
+    public List<Integer> test(String query){
+        return lemmaRep.getIdList(query);
+    }
 
 }

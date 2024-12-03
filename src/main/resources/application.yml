@@ -1,10 +1,11 @@
 
 
 indexing-settings:
-  deepLimit: 2 #глубина поиска подстраниц/ уровень главной страницы=1
+  maxFrequency: 10 #макс кол страниц с данной леммой (отсев самых частых)
+  deepLimit: 1 #глубина поиска подстраниц/ уровень главной страницы=1
   offset: 10 #размер порциирезультатов поиска
   limit: 50 #макс кол результатов поиска которые нужно вывести
-  userAgent: Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
+  userAgent: LocalSearchBot #Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
   referer: http://www.google.
   responseWait : 10000 #ожидание ответа в мс
   timeout: 1000 #таймаут между обращениями к сайт
@@ -12,12 +13,12 @@ indexing-settings:
   sites:
 #    - url: https://www.lenta.ru
 #      name: Лента.ру
-    - url: https://www.skillbox.ru
-      name: Skillbox
+#    - url: https://www.skillbox.ru
+#      name: Skillbox
     - url: https://www.playback.ru
       name: PlayBack.Ru
-    - url: https://mail.ru/
-      name: mailRu
+#    - url: https://mail.ru/
+#      name: mailRu
 
 server:
   port: 8085
@@ -31,6 +32,8 @@ spring:
     url: jdbc:postgresql://localhost:5433/postgres
     username: root
     password: pass
+    jpa:
+      show-sql: true
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled : true #версифицирование отключено
@@ -40,7 +43,11 @@ spring:
 #        dialect: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto:  none #validate #update #drop #create-only #create #create-drop
-    show-sql: true
+      show_sql: true
+      format_sql: true
+      type: trace
+
+    #show-sql: true
 
 
 

@@ -3,11 +3,9 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import searchengine.model.IndexingStatus;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.SiteRepository;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -50,7 +48,7 @@ public class SiteServiceImpl implements SiteService {
     //получить сайт по его Id и вернуть entity
     @Override
     public SiteEntity getEntityById(int id){
-        return siteRep.getEntytyById(id);
+        return siteRep.getEntityById(id);
     }
 
 
@@ -124,5 +122,11 @@ public class SiteServiceImpl implements SiteService {
     @Override
     public boolean existUrl(String url){
         return siteRep.existUrl(url);
+    }
+
+    //удалить все
+    @Override
+    public void clear(){
+        siteRep.clear();
     }
 }

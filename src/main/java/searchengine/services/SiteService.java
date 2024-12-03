@@ -39,4 +39,7 @@ public interface SiteService {
     //проверить наличие сайта по url
     boolean existUrl(String url);
 
+    //удалить все
+    public void clear();
+
 }

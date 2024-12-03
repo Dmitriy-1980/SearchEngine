@@ -10,7 +10,7 @@ public interface PageService {
     Optional<PageEntity> addPage(PageEntity page);
 
     //сохранить странцу как сущность
-    void addEntity(PageEntity page);
+    PageEntity addEntity(PageEntity page);
 
     //получить страницу по id страницы
     Optional<PageEntity> getById(int pageId);
@@ -29,4 +29,7 @@ public interface PageService {
 
     //проверить наличие по path
     boolean existUrlWithSite(int siteId, String path );
+
+    //удалить все
+    public void clear();
 }

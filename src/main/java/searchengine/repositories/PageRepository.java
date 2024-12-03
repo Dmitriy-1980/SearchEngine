@@ -25,4 +25,10 @@ public interface PageRepository extends JpaRepository<PageEntity, Integer> {
     @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM page WHERE site_id=:paramSiteId AND path=:paramPath)")
     boolean existUrlWithSite(@Param("paramSiteId") int siteId, @Param("paramPath") String path );
 
+    //удалить все
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value = "DELETE FROM page;")
+    void clear();
+
 }

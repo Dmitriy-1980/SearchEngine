@@ -6,14 +6,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import searchengine.config.Config;
 import searchengine.config.Site;
-import searchengine.repositories.IndexRepository;
-import searchengine.repositories.LemmaRepository;
-import searchengine.repositories.PageRepository;
-import searchengine.repositories.SiteRepository;
-import searchengine.services.IndexServiceImpl;
-import searchengine.services.LemmaServiceImpl;
-import searchengine.services.PageServiceImpl;
-import searchengine.services.SiteServiceImpl;
+import searchengine.services.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -25,12 +18,13 @@ import java.util.concurrent.ForkJoinPool;
 public class Indexing {
     private final Config config;
 
-    private final SiteServiceImpl siteService;
-    private final PageServiceImpl pageService;
-    private final LemmaServiceImpl lemmaService;
-    private final IndexServiceImpl indexService;
+    private final SiteService siteService;
+    private final PageService pageService;
+    private final LemmaService lemmaService;
+    private final IndexService indexService;
+    private final LuceneService luceneService;
 
-    private final ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
+    private final ForkJoinPool pool = new ForkJoinPool();//(Runtime.getRuntime().availableProcessors());
     private Boolean isRunning = false;
 
 
@@ -38,6 +32,7 @@ public class Indexing {
 
     //запустить индексацию по списку из конфигурации в application.yml
     public boolean startFromList(){
+        clearDB();//зачистить БД
         long start = System.currentTimeMillis();
         if (notMayStart()){
             return false;
@@ -64,6 +59,7 @@ public class Indexing {
         Site site = new Site();
         site.setUrl(url);
 
+        clearSiteData(url);
         goIndex(site);
         waitOfIndexingEnd();
 
@@ -75,11 +71,13 @@ public class Indexing {
 
     //индексация одного сайта изсписка
     private void goIndex(Site site){
-        HashSet<String> linksSet = new HashSet<>(); //коллекция ссылок сайта
+        //HashSet<String> linksSet = new HashSet<>(); //коллекция ссылок сайта
+        Vector<String> linksSet = new Vector<>(); //уникальный список ссылок со всего сайта
+        HashMap<String,Integer> siteLemmaMap = new HashMap<>(); //уникальный список лемм с кол их вхождений для всего сайта
         site.setUrl( site.getUrl() );
-        clearSiteData( site.getUrl() );
-        PageParser pageParser = new PageParser(site.getUrl(), linksSet, pool,
-                siteService, pageService, lemmaService , indexService,
+        //clearSiteData( site.getUrl() );
+        PageParser pageParser = new PageParser(site.getUrl(), linksSet, siteLemmaMap, pool,
+                siteService, pageService, luceneService, lemmaService , indexService,
                 1, null, config);
         pool.submit(pageParser);
     }
@@ -110,12 +108,22 @@ public class Indexing {
         }
     }
 
+    //удалить все данные из БД
+    private void clearDB(){
+        siteService.clear();
+        pageService.clear();
+        lemmaService.clear();
+        indexService.clear();
+    }
+
     //удалить все данные указанного сайта
-    private void clearSiteData(String url){
-        if (siteService.existUrl(url)){
-            int siteId = siteService.getEntityByUrl(url).getId();
+    private void clearSiteData(String siteUrl){
+        if (siteService.existUrl(siteUrl)){
+            int siteId = siteService.getEntityByUrl(siteUrl).getId();
             pageService.delAllBySiteId(siteId);
             siteService.delById(siteId);
+            lemmaService.delAllBySiteUrl(siteUrl);
+            indexService.delAllBySiteUrl(siteUrl);
         }
     }
 

@@ -2,9 +2,14 @@ package searchengine.config;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.lucene.morphology.LuceneMorphology;
+import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +17,7 @@ import java.util.List;
 @Setter
 @Component
 @ConfigurationProperties(prefix = "indexing-settings")
+@Configuration
 public class Config {
     private int deepLimit;
     private List<Site> sites;
@@ -23,6 +29,7 @@ public class Config {
     private int timeout; //таймаут(ms) между обращениями к сайту
     private int responseWait; //время одижания ответа индексируемой страницы
     private boolean readSubDomain; //обрабатывать ли поддомены
+    private int maxFrequency; //макс колстраниц с искомой леммой. (отсев чрезмерно распространенных)
 
     //проверить список сайтов на уникальность
     // (защита от двойного парсинга при неаккуратном вводе в application)
@@ -51,5 +58,11 @@ public class Config {
         }
         return false;
     }
+
+    @Bean
+    public LuceneMorphology luceneMorphology() throws IOException {
+        return new RussianLuceneMorphology(); //вернет объект для работы с русской морфологией
+    }
+
 
 }

@@ -30,11 +30,12 @@ public class PageServiceImpl implements PageService {
 
     //Добавить сущность
     @Override
-    public void addEntity(PageEntity page){
+    public PageEntity addEntity(PageEntity page){
         try {
-            pageRep.save(page);
+            return pageRep.save(page);
         }catch (Exception e){
             e.printStackTrace();
+            return null;
         }
     }
 
@@ -97,5 +98,9 @@ public class PageServiceImpl implements PageService {
         return pageRep.existUrlWithSite(siteId, path);
     }
 
-
+    //удалить все
+    @Override
+    public void clear(){
+        pageRep.clear();
+    }
 }

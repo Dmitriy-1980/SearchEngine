@@ -1,14 +1,21 @@
 package searchengine.controllers;
 
+import ch.qos.logback.core.encoder.EchoEncoder;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.codec.binary.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import searchengine.Application;
+import searchengine.config.Config;
+import searchengine.config.Site;
+import searchengine.dto.CommandResult;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.mechanics.Indexing;
-import searchengine.services.PageService;
-import searchengine.services.SiteService;
-import searchengine.services.StatisticsService;
+import searchengine.services.*;
+
+import java.io.IOException;
+import java.io.Serializable;
 
 
 @RestController
@@ -21,40 +28,48 @@ public class ApiController {
     private final SiteService siteService;
     private final StatisticsService statServ;
     private final Indexing indexing;
+    private final LuceneService luceneService;
+    private final Config config;
 
 
     //запуск полной индксации всех указанных в конфигурации сайтов
     @GetMapping("/startIndexing")
-    public String startIndexing(){
-        if ( indexing.startFromList() ) {
-            return "{'result': true}";
+    public CommandResult startIndexing() {
+        CommandResult result = new CommandResult();
+        if (indexing.startFromList()) {
+            result.setResult(true);
         } else {
-            return "{'result': false, 'error': \"Индексация уже запущена\"";}
+            result.setResult(false);
+            result.setError("Индексация уже запущена");
         }
+        return result;
+    }
 
 
     @GetMapping("/stopIndexing")
-    public String stopIndexing(){
+    public CommandResult stopIndexing(){
+        CommandResult result = new CommandResult();
         if (indexing.stop()){
-            return "{'result': true}";
+            result.setResult(true);
         }else {
-            return "{'result':false, 'error': \"Индексация не запущена\" }";
+            result.setResult(false);
+            result.setError("Индексация не запущена");
         }
+        return result;
     }
 
     //добавить сайт для индексации
     @PostMapping(value = "/indexPage")
-    private String indexPage(@RequestParam("url") String url){
+    private CommandResult indexPage(@RequestParam("url") String url){
+        CommandResult result = new CommandResult();
         if (indexing.startAdditionalIndexing(url)){
-            return "{ 'result': true }";
+            result.setResult(true);
         }
         else {
-            return "{ 'result': false, \"Индексация уже запущена\" }";
+            result.setResult(false);
+            result.setError("Индексация уже запущена");
         }
-        //todo пояснение куратора противоречит ТЗ. уточнить
-        // по ТЗ воттакой ответпредусмотрен. Отсыда, вроде как, и логика иная прослеживается.
-        // { 'result': false, "Данная страница находится за пределами сайтов,
-        //                         указанных в конфигурационном файле" }
+        return result;
     }
 
     @GetMapping("/statistics")
@@ -70,10 +85,78 @@ public class ApiController {
         }
     }
 
+
     @GetMapping("/search")
-    private ResponseEntity<?> search(@RequestBody String query) {
-        //реализация зависит от вида переденного запроса. SQL строка или иначе
+    private Serializable search(@RequestParam("query") String query, @RequestParam("site") String siteUrl) {
+        //ResponseEntity<?> response = new ResponseEntity<>(null, HttpStatus.valueOf(505));
+        System.out.println(query + "   " + siteUrl);
+
+        if (query.isEmpty()){
+            return onEmptyQuery();
+        }
+
+        if (siteUrl.isEmpty()){
+            //запуск для всех сайтов списка
+            try {
+                luceneService.search(query);
+                //todo тут ответ- результат поиска
+            }catch (IOException e){
+                e.printStackTrace();
+                return onSearchException();
+            }
+        }
+        else{
+            String url = checkUrl(siteUrl);
+            if (url.isEmpty()){
+                return onAlienSite();
+            }else {
+                //запуск для конкретного сайта
+                System.out.println("one");
+            }
+        }
         return null;
     }
 
+    //(этот пункт неочевиден) проверить адрес сайта на соответствие формату,
+    //принадлежности к индксируемому списку
+    //и вернуть или пустую строку""(если не подходит) или url без слеша в конце
+    private String checkUrl(String siteUrl){
+       String url;
+       if (siteUrl.endsWith("/")){
+           url = siteUrl.substring(0, siteUrl.length() - 1);
+       } else {
+           url = siteUrl;
+       }
+
+       for (Site site : config.getSites()){
+           if (url.equals( site.getUrl() )){
+               return url;
+           }
+       }
+       return "";
+    }
+
+    //ответ на пустой запрос
+    private CommandResult onEmptyQuery(){
+        CommandResult response = new CommandResult();
+        response.setResult(false);
+        response.setError("Задан пустой поисковый запрос");
+        return response;
+    }
+
+    //сайт не из списка индексации
+    private CommandResult onAlienSite(){
+        CommandResult response = new CommandResult();
+        response.setResult(false);
+        response.setError("Заданый сайт не из списка индексации.");
+        return response;
+    }
+
+    //ошибка при работе поисковика
+    private CommandResult onSearchException(){
+        CommandResult response = new CommandResult();
+        response.setResult(false);
+        response.setError("Внутренняя ошибка сервера.");
+        return response;
+    }
 }

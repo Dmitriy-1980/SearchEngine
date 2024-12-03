@@ -9,10 +9,7 @@ import org.jsoup.select.Elements;
 
 import searchengine.config.Config;
 import searchengine.model.*;
-import searchengine.services.IndexServiceImpl;
-import searchengine.services.LemmaServiceImpl;
-import searchengine.services.PageServiceImpl;
-import searchengine.services.SiteServiceImpl;
+import searchengine.services.*;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -24,28 +21,32 @@ public class PageParser extends RecursiveAction {
     private final String pageUrl;
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
-    private HashSet<String> linksSet;
+    private final Vector<String> linksSet; //лист ссылок всего сайта
+    private final HashMap<String, Integer> siteLemmaMap;//леммы всего сайта с кол их вхождений
     private final ForkJoinPool pool;
     private final int deep;
     private String protocol; // протокол запроса (в виде http: или https: )
     private final Config config;
 
-    private final SiteServiceImpl siteService;
-    private final PageServiceImpl pageService;
-    private final LemmaServiceImpl lemmaService;
-    private final IndexServiceImpl indexService;
+    private final SiteService siteService;
+    private final PageService pageService;
+    private final LemmaService lemmaService;
+    private final IndexService indexService;
+    private final LuceneService luceneService;
 
 
-public PageParser(String pageUrl, HashSet<String> linksSet,
+public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Integer> siteLemmaMap,
                   ForkJoinPool pool,
-                  SiteServiceImpl siteService, PageServiceImpl pageService,
-                  LemmaServiceImpl lemmaService, IndexServiceImpl indexService,
+                  SiteService siteService, PageService pageService, LuceneService luceneService,
+                  LemmaService lemmaService, IndexService indexService,
                   int deep, SiteEntity site, Config config){
         this.pageUrl = pageUrl;
         this.linksSet = linksSet;
+        this.siteLemmaMap = siteLemmaMap;
         this.pool = pool;
         this.siteService = siteService;
         this.pageService = pageService;
+        this.luceneService = luceneService;
         this.lemmaService = lemmaService;
         this.indexService = indexService;
         this.deep = deep;
@@ -56,6 +57,7 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
         }
         this.config = config;
     }
+
 
     //@SneakyThrows
     @Override
@@ -75,8 +77,8 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
             site = new SiteEntity();
         }
         PageEntity page = new PageEntity();
-        LemmaEntity lemma = new LemmaEntity();
-        IndexEntity index = new IndexEntity();
+        //LemmaEntity lemma = new LemmaEntity();
+        //IndexEntity index = new IndexEntity();
 
         //непроснувшийся поток:
         try {
@@ -138,20 +140,29 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
                 continue;
             }
             synchronized (linksSet) {
-                if (linksSet.add(link)) {
+                if (!linksSet.contains(link)) {
+                    linksSet.add(link);
                     linkOnPage.add(link);
                 }
             }
         }
 
         //сохранить собранную о странице информацию
-        saveCurrentPage(siteResponse.statusCode(), content.toString());
+        page = saveCurrentPage(siteResponse.statusCode(), content.toString());
+
+        //вызов лематизатора
+        // (анализ контента, сохранение лемм и индексов)
+        if (page == null){
+            return;
+        }
+        luceneGo(page);
+
 
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
         if (deep < config.getDeepLimit()){
             for (String link : linkOnPage){
-                PageParser pageParser = new PageParser(link, linksSet, pool,
-                        siteService, pageService, lemmaService , indexService, deep + 1, site, config);
+                PageParser pageParser = new PageParser(link, linksSet, siteLemmaMap, pool,
+                        siteService, pageService, luceneService, lemmaService , indexService, deep + 1, site, config);
                 pool.submit(pageParser).fork();
             }
         }
@@ -388,18 +399,68 @@ public PageParser(String pageUrl, HashSet<String> linksSet,
     }
 
     //сохранить текущуюю страницу при отсутствии ошибок
-    private void saveCurrentPage(int code, String content){
+    private PageEntity saveCurrentPage(int code, String content){
         PageEntity page = new PageEntity();
         page.setCode(code);
-        //page.setContent(content);
-        page.setContent("thread " + Thread.currentThread().getName() + "  time " + LocalDateTime.now());
-        //page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
-        page.setPath(getLocalUrl(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName()));
+        page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
+        page.setContent(content);
+        //page.setPath(getLocalUrl(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName()));
+        //page.setContent("thread " + Thread.currentThread().getName() + "  time " + LocalDateTime.now());
+
         page.setSiteId(site);
         try {
-            pageService.addEntity(page);
+            return pageService.addEntity(page);
         }catch (Exception e){
             System.out.println("Ошибка сохранения " + page.getPath() + " ");
+            return null;
         }
     }
+
+    //сохранить (или обновить) лемму для текущего сайта
+    private LemmaEntity saveLemma(String lemma, int count){
+        LemmaEntity lemmaEntity = new LemmaEntity();
+        lemmaEntity.setFrequency(count);
+        //lemmaEntity.setLemma(lemma + " / " + Thread.currentThread().getName());
+        lemmaEntity.setLemma(lemma);
+        lemmaEntity.setSiteId(site.getId());
+        return lemmaService.saveLemma(lemmaEntity);
+    }
+
+    //сохранить индекс
+    private void saveIndex(int lemmaId, int lemmaCount, int pageId){
+    IndexEntity indexEntity = new IndexEntity();
+    indexEntity.setPageId( pageId );
+    indexEntity.setRank(lemmaCount);
+    indexEntity.setLemmaId(lemmaId);
+
+    indexService.saveIndex(indexEntity);
+    }
+
+    //lucene
+    private void luceneGo(PageEntity page){
+        LemmaEntity lemma = new LemmaEntity();
+        lemma.setSiteId( site.getId() );
+
+        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(page.getContent());
+        for (Map.Entry<String, Integer> item : pageLemmaMap.entrySet()){
+            synchronized (siteLemmaMap) {
+                //Optional<Integer> lemmaCount = Optional.ofNullable(siteLemmaMap.get(item.getKey()));
+                if (siteLemmaMap.containsKey(item.getKey())) {
+                    //обновить лемму ю кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
+                    int lemmaCount = siteLemmaMap.get(item.getKey());
+                    LemmaEntity lemmaEntity = saveLemma(item.getKey(), lemmaCount + item.getValue());
+                    saveIndex(lemmaEntity.getId(), item.getValue(), page.getId());
+                    siteLemmaMap.put(item.getKey(), item.getValue() + lemmaCount);
+                } else {
+                    //создать лемму по данным из pageLemmaMap. И индекс.
+                    LemmaEntity lemmaEntity = saveLemma(item.getKey(), item.getValue());
+                    saveIndex(lemmaEntity.getId(), item.getValue(), page.getId());
+                    siteLemmaMap.put(item.getKey(), item.getValue());
+
+                }
+            }
+        }
+    }
+
+
 }
