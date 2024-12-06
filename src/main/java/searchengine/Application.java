@@ -14,6 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 @ConfigurationProperties(prefix = "indexing-settings")
 public class Application {
 
+
     public static void main(String[] args) {
         ApplicationContext context = SpringApplication.run(Application.class, args);
         System.out.println("Application.main.lastPoint");

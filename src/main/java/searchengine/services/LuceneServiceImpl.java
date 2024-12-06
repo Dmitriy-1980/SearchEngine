@@ -3,7 +3,6 @@ package searchengine.services;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.analysis.StopFilter;
-import org.apache.lucene.analysis.TokenFilter;
 import org.apache.lucene.analysis.ru.RussianAnalyzer;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
@@ -13,14 +12,11 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class LuceneServiceImpl implements LuceneService {
     private final LuceneMorphology luceneMorphology;
-    private final LemmaService lemmaService;
-    private final IndexService indexService;
 
     //получить карту лемм с кол их вхождений для одной страницы
     @Override
@@ -47,7 +43,8 @@ public class LuceneServiceImpl implements LuceneService {
     }
 
     //разбить текст на токены, отфильтовать
-    private List<String> getTokenList(String content) throws IOException {
+    @Override
+    public List<String> getTokenList(String content) throws IOException {
         List<String> list = new ArrayList<>();
 
         RussianAnalyzer ra = new RussianAnalyzer();
@@ -66,7 +63,8 @@ public class LuceneServiceImpl implements LuceneService {
     }
 
     //получить список "основ" из слова
-    private List<String> getLemma(String word){
+    @Override
+    public List<String> getLemma(String word){
 
         if (!luceneMorphology.checkString(word)){
             return Collections.emptyList();
@@ -120,51 +118,6 @@ public class LuceneServiceImpl implements LuceneService {
             }
         }
         return false;
-    }
-
-    //выполнить поисковый запрос по всему списку сайтов
-    @Override
-    public boolean search(String query) throws IOException{
-        List<String> lemmaList = new ArrayList<>();
-        String forQuery; //список в нужном для sql виде
-        //разбиение запроса на токены, фильтрация
-        //получение по каждому токену леммы
-        for (String term : getTokenList(query)){
-            lemmaList.addAll( getLemma(term) );
-        }
-
-        if (lemmaList.isEmpty()) { return false; }
-
-        //получить список лемм в виде пригодном для SQL
-        forQuery = getSqlList(lemmaList);
-
-        //получить список lemma_Id для лемм из запроса в порядке убывания их частоты
-        List<Integer> listLemmaId = lemmaService.getIdList(forQuery);
-        //forQuery = getSqlList(listLemmaId);
-
-        //получить список page_id для страниц по этим леммам. Последовательные запросы по леммам.
-        //Начиная с первой получаем page_id страниц, для каждой последующей список page_id фильтруем по текущей лемме
-        List<Integer> listPageId =new ArrayList<>();
-        listPageId = indexService.getIdListByLemmaId(listLemmaId.get(0));
-        for (int i = 1; i < listLemmaId.size(); i++){
-            forQuery = getSqlList(listPageId);
-            listPageId.clear();
-            listPageId = indexService.filterPageIdByLemmaId(forQuery, listLemmaId.get(i));
-            if (listPageId.isEmpty()){ return false;}
-        }
-        //тут получен список page_id с искомыми леммами
-        return true;
-    }
-
-    //выполнить поисковый запрос по одному конкретному сайту
-    @Override
-    public boolean search(String query, String siteUrl){
-        return false;
-    }
-
-    //привести список List<> к виду списка для SQL ('a','b','c','d')
-    private String getSqlList(List<?> list){
-        return "('" + StringUtils.join(list, "','") + "')";
     }
 
 }

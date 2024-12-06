@@ -21,7 +21,7 @@ public class PageParser extends RecursiveAction {
     private final String pageUrl;
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
-    private final Vector<String> linksSet; //лист ссылок всего сайта
+    private volatile Vector<String> linksSet; //лист ссылок всего сайта
     private final HashMap<String, Integer> siteLemmaMap;//леммы всего сайта с кол их вхождений
     private final ForkJoinPool pool;
     private final int deep;
@@ -52,7 +52,9 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
         this.deep = deep;
         this.site = site;
         if (deep == 1){
-            linksSet.add(pageUrl);
+            synchronized (linksSet){
+                linksSet.add(pageUrl);
+            }
             this.protocol = getProtocol(pageUrl);
         }
         this.config = config;
@@ -72,13 +74,11 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
 
 
     private void readPage(){
-//если deep=1 то это главная страница, значит нужно создать кроме page еще и  site
+        //если deep=1 то это главная страница, значит нужно создать кроме page еще и  site
         if (deep == 1){
             site = new SiteEntity();
         }
         PageEntity page = new PageEntity();
-        //LemmaEntity lemma = new LemmaEntity();
-        //IndexEntity index = new IndexEntity();
 
         //непроснувшийся поток:
         try {
@@ -139,8 +139,10 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
             if (!isCorrectLink(link) || isSubdomain(link)){
                 continue;
             }
-            synchronized (linksSet) {
-                if (!linksSet.contains(link)) {
+
+            //прооверка на уникальность и добавление уникальных ссылок
+            synchronized (linksSet){
+                if (!linksSet.contains(link)){
                     linksSet.add(link);
                     linkOnPage.add(link);
                 }
@@ -402,11 +404,11 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
     private PageEntity saveCurrentPage(int code, String content){
         PageEntity page = new PageEntity();
         page.setCode(code);
-        page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
+        //page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
         page.setContent(content);
-        //page.setPath(getLocalUrl(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName()));
+        page.setPath(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName() );
         //page.setContent("thread " + Thread.currentThread().getName() + "  time " + LocalDateTime.now());
-
+        System.out.println(">>>> сохранение страницы " + page.getPath());
         page.setSiteId(site);
         try {
             return pageService.addEntity(page);
@@ -438,17 +440,17 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
 
     //lucene
     private void luceneGo(PageEntity page){
+        System.out.println("### luceneGo " + pageUrl);
         LemmaEntity lemma = new LemmaEntity();
         lemma.setSiteId( site.getId() );
 
         HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(page.getContent());
         for (Map.Entry<String, Integer> item : pageLemmaMap.entrySet()){
             synchronized (siteLemmaMap) {
-                //Optional<Integer> lemmaCount = Optional.ofNullable(siteLemmaMap.get(item.getKey()));
                 if (siteLemmaMap.containsKey(item.getKey())) {
-                    //обновить лемму ю кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
+                    //обновить лемм. кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
                     int lemmaCount = siteLemmaMap.get(item.getKey());
-                    LemmaEntity lemmaEntity = saveLemma(item.getKey(), lemmaCount + item.getValue());
+                    LemmaEntity lemmaEntity = lemmaService.update(item.getKey(), lemmaCount + item.getValue());
                     saveIndex(lemmaEntity.getId(), item.getValue(), page.getId());
                     siteLemmaMap.put(item.getKey(), item.getValue() + lemmaCount);
                 } else {

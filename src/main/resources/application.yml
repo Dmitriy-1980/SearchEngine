@@ -2,7 +2,7 @@
 
 indexing-settings:
   maxFrequency: 10 #макс кол страниц с данной леммой (отсев самых частых)
-  deepLimit: 1 #глубина поиска подстраниц/ уровень главной страницы=1
+  deepLimit: 2 #глубина поиска подстраниц/ уровень главной страницы=1
   offset: 10 #размер порциирезультатов поиска
   limit: 50 #макс кол результатов поиска которые нужно вывести
   userAgent: LocalSearchBot #Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
@@ -46,8 +46,11 @@ spring:
       show_sql: true
       format_sql: true
       type: trace
+#logging:
+#  level:
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type: TRACE
 
-    #show-sql: true
 
 
 

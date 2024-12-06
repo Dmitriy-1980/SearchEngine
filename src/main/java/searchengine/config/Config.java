@@ -1,6 +1,7 @@
 package searchengine.config;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.apache.lucene.morphology.russian.RussianLuceneMorphology;
@@ -18,6 +19,7 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "indexing-settings")
 @Configuration
+@RequiredArgsConstructor
 public class Config {
     private int deepLimit;
     private List<Site> sites;
@@ -63,6 +65,5 @@ public class Config {
     public LuceneMorphology luceneMorphology() throws IOException {
         return new RussianLuceneMorphology(); //вернет объект для работы с русской морфологией
     }
-
 
 }

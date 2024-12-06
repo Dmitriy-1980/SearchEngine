@@ -2,15 +2,17 @@ package searchengine.services;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 
 public interface LuceneService {
 
     //получить карту лемм с кол их вхождений
     HashMap<String,Integer> getLemmaMap(String content);
 
-    //выполнить поисковый запрос по всем сайтам спимка индексации
-    boolean search(String query) throws IOException;
+    //разбить текст на токены, отфильтовать
+    List<String> getTokenList(String content) throws IOException;
 
-    //выполнить поисковый запрос
-    boolean search(String query, String siteUrl ) throws IOException;
+    //получить список "основ" из слова
+    List<String> getLemma(String word);
+
 }

@@ -2,44 +2,27 @@ package searchengine.services;
 
 import searchengine.model.SiteEntity;
 
-import java.util.Optional;
-
 public interface SiteService {
 
     //добавить сайт entity
     void addEntity(SiteEntity site);
 
-    //найти сайт по его url (вернуть Optional)
-    Optional<SiteEntity> getOptnlByUrl(String url);
+    //найти кол записей
+    long count();
 
     //найти сайт по его url (вернуть Entity)
-    SiteEntity getEntityByUrl(String url);
-
-    //найти сайт по id (вернуть Optional)
-    Optional<SiteEntity> getOptnlById(int id);
-
-    //найти сайт по id (вернуть Entity)
-    SiteEntity getEntityById(int id);
-
-    //обновить сайт по его url
-    boolean updateByUrl(String url, SiteEntity site);
-
-    //обновить сайт по его id
-    boolean updateById(int id, SiteEntity site);
-
-    //удалить сайт по его url
-    boolean delByUrl(String url);
-
-    //удалить сайт по его id
-    boolean delById(int id);
+    SiteEntity findByUrl(String url);
 
     //проверить наличие сайтов у которых индексация еще идет
     boolean existIndexing();
+
+    //удалить сайт по его id
+    boolean delById(int id);
 
     //проверить наличие сайта по url
     boolean existUrl(String url);
 
     //удалить все
-    public void clear();
+    void clear();
 
 }

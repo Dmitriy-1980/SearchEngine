@@ -18,7 +18,7 @@ public interface SiteRepository extends JpaRepository<SiteEntity, Integer> {
 
     //получить сайт (entity) по его id
     @Query(nativeQuery = true,value = "SELECT * FROM site WHERE id=:paramId)")
-    SiteEntity getEntityById(@Param("paramId") int siteId);
+    SiteEntity findById(@Param("paramId") int siteId);
 
     //проверить наличие сайтов у которых индексация еще идет
     @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM site WHERE status='INDEXING')")

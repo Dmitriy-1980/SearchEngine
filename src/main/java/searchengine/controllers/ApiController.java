@@ -1,17 +1,15 @@
 package searchengine.controllers;
 
-import ch.qos.logback.core.encoder.EchoEncoder;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.codec.binary.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import searchengine.Application;
 import searchengine.config.Config;
 import searchengine.config.Site;
 import searchengine.dto.CommandResult;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.mechanics.Indexing;
+import searchengine.mechanics.Search;
 import searchengine.services.*;
 
 import java.io.IOException;
@@ -30,6 +28,7 @@ public class ApiController {
     private final Indexing indexing;
     private final LuceneService luceneService;
     private final Config config;
+    private final Search search;
 
 
     //запуск полной индксации всех указанных в конфигурации сайтов
@@ -88,7 +87,6 @@ public class ApiController {
 
     @GetMapping("/search")
     private Serializable search(@RequestParam("query") String query, @RequestParam("site") String siteUrl) {
-        //ResponseEntity<?> response = new ResponseEntity<>(null, HttpStatus.valueOf(505));
         System.out.println(query + "   " + siteUrl);
 
         if (query.isEmpty()){
@@ -98,7 +96,7 @@ public class ApiController {
         if (siteUrl.isEmpty()){
             //запуск для всех сайтов списка
             try {
-                luceneService.search(query);
+                search.search(query, "");
                 //todo тут ответ- результат поиска
             }catch (IOException e){
                 e.printStackTrace();

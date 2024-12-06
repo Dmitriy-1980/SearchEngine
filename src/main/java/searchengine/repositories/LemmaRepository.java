@@ -8,8 +8,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.LemmaEntity;
 
-import java.util.List;
-
 @Repository
 public interface LemmaRepository extends JpaRepository<LemmaEntity, Integer> {
 
@@ -39,22 +37,14 @@ public interface LemmaRepository extends JpaRepository<LemmaEntity, Integer> {
     @Query(nativeQuery = true, value = "DELETE FROM lemma WHERE site_id IN (SELECT id FROM site WHERE url=:paramUrl)")
     void delAllBySiteUrl(@Param("paramUrl") String url);
 
-    //получить сущность по названию леммы
-    @Query(nativeQuery = true, value = "SELECT * FROM lemma WHERE lemma.lemma=:paramLemma;")
-    LemmaEntity getEntityByLemma(@Param("paramLemma") String lemma);
-
     //удалить все
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value = "DELETE FROM lemma;")
     void clear();
 
-    //получить список id лемм из запроса по убыванию частоты обнаружений
-    @Query(nativeQuery = true, value = "SELECT id FROM lemma WHERE lemma IN :list ORDER BY frequency DESC;")
-    List<Integer> getIdList(@Param("list") String listLemma);
-
-    //выполнить любой запрос
-    @Query(nativeQuery = true, value = ":query")
-    List<Integer> test(@Param("query") String query);
+    //получить id по слову
+    @Query(nativeQuery = true, value = "SELECT * FROM lemma WHERE lemma = :paramLemma")
+    LemmaEntity getEntityByLemma(@Param("paramLemma") String lemma);
 
 }

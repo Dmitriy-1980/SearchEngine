@@ -13,7 +13,7 @@ public interface PageRepository extends JpaRepository<PageEntity, Integer> {
 
     //кол страниц по заданному id сайта
     @Query(nativeQuery = true, value = "SELECT COUNT(*) FROM page WHERE site_id=:paramId;")
-    Integer getCountBySiteId(@Param("paramId") int id);
+    int getCountBySiteId(@Param("paramId") int id);
 
     //удаление всех страниц по Id сайта
     @Transactional
@@ -30,5 +30,6 @@ public interface PageRepository extends JpaRepository<PageEntity, Integer> {
     @Modifying
     @Query(nativeQuery = true, value = "DELETE FROM page;")
     void clear();
+
 
 }

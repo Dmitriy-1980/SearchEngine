@@ -10,9 +10,6 @@ import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.IndexingStatus;
 import searchengine.model.SiteEntity;
-import searchengine.repositories.LemmaRepository;
-import searchengine.repositories.PageRepository;
-import searchengine.repositories.SiteRepository;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -21,17 +18,16 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class StatisticsServiceImpl implements StatisticsService {
-    private final SiteRepository siteRep;
-    private final LemmaRepository lemmaRep;
-    private final PageRepository pageRep;
+    private final SiteService siteService;
+    private final LemmaService lemmaService;
+    private final PageService pageService;
     private final Config config;
-    private final SiteServiceImpl siteService;
 
     //детальная инфа по сайту
     @Override
     public DetailedStatisticsItem getDetailedStatisticsItem(String siteUrl) {
         DetailedStatisticsItem detailedStatisticsItem =new DetailedStatisticsItem();
-        if (!siteRep.existUrl(siteUrl)){ //сайта такого в БД нет
+        if (!siteService.existUrl(siteUrl)){ //сайта такого в БД нет
             detailedStatisticsItem.setError("Такой сайт еще не индексировался.");
             detailedStatisticsItem.setStatus(IndexingStatus.FAILED.toString());
             detailedStatisticsItem.setUrl(siteUrl);
@@ -40,10 +36,10 @@ public class StatisticsServiceImpl implements StatisticsService {
             detailedStatisticsItem.setStatusTime(System.currentTimeMillis());
             return detailedStatisticsItem;
         }
-        SiteEntity site = siteRep.findByUrl(siteUrl);
+        SiteEntity site = siteService.findByUrl(siteUrl);
         int id = site.getId();
-        int lemmaCount = lemmaRep.getCountBySiteId(id);
-        int pageCount = pageRep.getCountBySiteId(id);
+        int lemmaCount = lemmaService.getCountBySiteId(id);
+        int pageCount = pageService.getCountBySiteId(id);
         long statusTime = Timestamp.valueOf(site.getStatusTime()).getTime();
 
         detailedStatisticsItem.setError(site.getLastError());
@@ -61,10 +57,10 @@ public class StatisticsServiceImpl implements StatisticsService {
     @Override
     public TotalStatistics getTotalStatistics() {
         TotalStatistics totalStatistics = new TotalStatistics();
-        totalStatistics.setSites( (int) siteRep.count() );
-        totalStatistics.setPages( (int) pageRep.count() );
-        totalStatistics.setLemmas( (int) lemmaRep.count() );
-        if ( ! siteRep.existIndexing() ){
+        totalStatistics.setSites( (int) siteService.count() );
+        totalStatistics.setPages( (int) pageService.count() );
+        totalStatistics.setLemmas( (int) lemmaService.count() );
+        if ( ! siteService.existIndexing() ){
             totalStatistics.setIndexing(false);
         } else{
             totalStatistics.setIndexing(true);

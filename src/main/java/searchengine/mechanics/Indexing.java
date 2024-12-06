@@ -1,5 +1,6 @@
 package searchengine.mechanics;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -12,12 +13,12 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 
+@Getter
 @Component
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 @RequiredArgsConstructor
 public class Indexing {
     private final Config config;
-
     private final SiteService siteService;
     private final PageService pageService;
     private final LemmaService lemmaService;
@@ -26,9 +27,6 @@ public class Indexing {
 
     private final ForkJoinPool pool = new ForkJoinPool();//(Runtime.getRuntime().availableProcessors());
     private Boolean isRunning = false;
-
-
-
 
     //запустить индексацию по списку из конфигурации в application.yml
     public boolean startFromList(){
@@ -71,11 +69,9 @@ public class Indexing {
 
     //индексация одного сайта изсписка
     private void goIndex(Site site){
-        //HashSet<String> linksSet = new HashSet<>(); //коллекция ссылок сайта
         Vector<String> linksSet = new Vector<>(); //уникальный список ссылок со всего сайта
         HashMap<String,Integer> siteLemmaMap = new HashMap<>(); //уникальный список лемм с кол их вхождений для всего сайта
         site.setUrl( site.getUrl() );
-        //clearSiteData( site.getUrl() );
         PageParser pageParser = new PageParser(site.getUrl(), linksSet, siteLemmaMap, pool,
                 siteService, pageService, luceneService, lemmaService , indexService,
                 1, null, config);
@@ -119,7 +115,7 @@ public class Indexing {
     //удалить все данные указанного сайта
     private void clearSiteData(String siteUrl){
         if (siteService.existUrl(siteUrl)){
-            int siteId = siteService.getEntityByUrl(siteUrl).getId();
+            int siteId = siteService.findByUrl(siteUrl).getId();
             pageService.delAllBySiteId(siteId);
             siteService.delById(siteId);
             lemmaService.delAllBySiteUrl(siteUrl);
