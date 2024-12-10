@@ -11,7 +11,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @ComponentScan("searchengine")
 @RequiredArgsConstructor
-@ConfigurationProperties(prefix = "indexing-settings")
+//@ConfigurationProperties(prefix = "indexing-settings")
 public class Application {
 
 

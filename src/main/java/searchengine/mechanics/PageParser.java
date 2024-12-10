@@ -7,7 +7,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import searchengine.config.Config;
+//import org.redisson.api.RMap;
+import searchengine.config.ConfigAppl;
 import searchengine.model.*;
 import searchengine.services.*;
 
@@ -15,9 +16,8 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.RecursiveAction;
 
-public class PageParser extends RecursiveAction {
+public class PageParser implements Runnable {//extends RecursiveAction
     private final String pageUrl;
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
@@ -26,7 +26,7 @@ public class PageParser extends RecursiveAction {
     private final ForkJoinPool pool;
     private final int deep;
     private String protocol; // протокол запроса (в виде http: или https: )
-    private final Config config;
+    private final ConfigAppl config;
 
     private final SiteService siteService;
     private final PageService pageService;
@@ -34,12 +34,16 @@ public class PageParser extends RecursiveAction {
     private final IndexService indexService;
     private final LuceneService luceneService;
 
+/*В конструкторпередаются сервисы, конфиг приложения, пулл потоков - всегда одинаково.
+* deep-глубина вложенности обрабатываемой ссылки. Если deep==0 то это главная страница.
+* linkSet и siteLemmaMap коллекции ссылок и лемм одного сайта.Они сквозные для всего сайта
+* и нужны для контроля на уникальность ссылок и подсчета лемм без обращения к SQL-серверу. */
 
-public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Integer> siteLemmaMap,
+public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integer> siteLemmaMap,
                   ForkJoinPool pool,
                   SiteService siteService, PageService pageService, LuceneService luceneService,
                   LemmaService lemmaService, IndexService indexService,
-                  int deep, SiteEntity site, Config config){
+                  int deep, SiteEntity site, ConfigAppl config){
         this.pageUrl = pageUrl;
         this.linksSet = linksSet;
         this.siteLemmaMap = siteLemmaMap;
@@ -52,120 +56,59 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
         this.deep = deep;
         this.site = site;
         if (deep == 1){
-            synchronized (linksSet){
-                linksSet.add(pageUrl);
-            }
+            linksSet.add(pageUrl);
             this.protocol = getProtocol(pageUrl);
+            this.site = new SiteEntity();
+            this.site.setUrl(pageUrl);
         }
         this.config = config;
     }
 
 
-    //@SneakyThrows
+    @SneakyThrows
     @Override
-    public void compute(){
-        try {
-            readPage();
-        }catch (Exception e){
-            System.out.println("**** Ошибка при работе со страницей ." + pageUrl);
-            e.printStackTrace();
-        }
-    }
-
-
-    private void readPage(){
-        //если deep=1 то это главная страница, значит нужно создать кроме page еще и  site
-        if (deep == 1){
-            site = new SiteEntity();
-        }
+    public void run(){
         PageEntity page = new PageEntity();
 
-        //непроснувшийся поток:
-        try {
-            Thread.sleep(config.getTimeout());
-        } catch (InterruptedException e){
-            onInterruptedException(e);
-            return;
-        }
-
-        //ошибка получения siteResponse
-        Connection.Response siteResponse = null;
-        try {
-            siteResponse = getResponse();
-        }
-        catch (IOException e){
-            onSiteResponseIsNull(e);
-            return;
-        }
+        Thread.sleep(config.getTimeout());
+        Connection.Response siteResponse = getResponse();
 
         //если http код "не положительный"
         if (siteResponse.statusCode() >=400){
-            onHttpTroubleCode(siteResponse.statusCode());
+            onHttpTroubleCode(siteResponse.statusMessage());
             return;
         }
 
-        //далее считаем, что ответ от сайта получен
-        StringBuilder content = new StringBuilder();
-
-        //при ошибке парсинга:
-        try{
-            document = siteResponse.parse();
-        }
-        catch (IOException e){
-            onParsingError(e);
-            return;
-        }
-
-        //сайт прочитан и Document получен.
-        if (deep == 1 ){
-            saveCurrentSite();
-        }
-
-        //получить контент (без тегов логично)
-        Elements elements = document.select("*");
-        for (Element tag : elements){
-            content.append(tag.text()).append(" ");
-        }
+        document = siteResponse.parse();
 
         //получить ссылки и проверить на уникальность
-        elements = document.select("a");
+        Elements links = document.select("a");
         List<String> linkOnPage = new ArrayList<>();
-        for (Element item : elements){
-            if (item.attribute("href") == null){
-                continue;
-            }
+        for (Element item : links){
+            if (item.attribute("href") == null) { continue; }
             String link = item.attribute("href").getValue();
             link = getFullLink(link);
-            if (!isCorrectLink(link) || isSubdomain(link)){
-                continue;
-            }
-
-            //прооверка на уникальность и добавление уникальных ссылок
-            synchronized (linksSet){
-                if (!linksSet.contains(link)){
+            if (!isCorrectLink(link) || isSubdomain(link)) { continue; }
+            //добавление уникальных ссылок в "сквозной список сайта" и локальный список страницы
+            synchronized (linksSet) {
+                if (!linksSet.contains(link)) {
                     linksSet.add(link);
                     linkOnPage.add(link);
                 }
             }
         }
-
-        //сохранить собранную о странице информацию
-        page = saveCurrentPage(siteResponse.statusCode(), content.toString());
-
-        //вызов лематизатора
-        // (анализ контента, сохранение лемм и индексов)
-        if (page == null){
-            return;
-        }
+        //сохранение сайта, страницы, вызов лемматизатора для анализа контента
+        saveCurrentSite();
+        page = saveCurrentPage(siteResponse.statusCode());
         luceneGo(page);
 
-
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
-        if (deep < config.getDeepLimit()){
+        if (deep < config.getDeepLimit() || config.getDeepLimit() == 0){
             for (String link : linkOnPage){
                 PageParser pageParser = new PageParser(link, linksSet, siteLemmaMap, pool,
                         siteService, pageService, luceneService, lemmaService , indexService, deep + 1, site, config);
-                pool.submit(pageParser).fork();
+                //pool.submit(pageParser).fork(); //место роковой ошибки
+                pool.submit(pageParser);
             }
         }
     }
@@ -290,139 +233,43 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
     }
 
     //*сохранение в БД при ошибках или положительных событиях:*/
-    //непроснувшийся поток
-    private void onInterruptedException(Exception e){
-        if (deep == 1){
-            site.setUrl(pageUrl);
-            site.setName("-");
-            site.setStatus(IndexingStatus.FAILED.toString());
-            site.setStatusTime(LocalDateTime.now());
-            site.setLastError("Поток не вышел из сна. InterruptedException. " + e.getMessage());
-            siteService.addEntity(site);
-        }
-        else{
-            PageEntity page = new PageEntity();
-            page.setSiteId(site);
-            page.setContent("-");
-            page.setCode(520); //неизвестная ошибка
-            page.setPath(pageUrl);
-            pageService.addEntity(page);
-
-            site.setStatusTime(LocalDateTime.now());
-            site.setLastError("Пото не вышел из сна. InterruptedException. " + e.getMessage());
-            siteService.addEntity(site);
-        }
-    }
-
-    //не удалось получить SiteResponse
-    private void onSiteResponseIsNull(Exception e){
-        System.out.println("Ошибка получения объекта SiteResponse. (Возможны проблемы с сертификацией.) " + e.getMessage());
-        String msg = "Ошибка получения объекта SiteResponse. (Возможны проблемы с сертификацией.) " +
-                e.getMessage();
-        System.out.println(msg);
-        if (deep == 1){
-            site.setStatusTime(LocalDateTime.now());
-            site.setUrl(pageUrl);
-            site.setName("-");
-            site.setStatus(IndexingStatus.FAILED.toString());
-            site.setLastError(msg);
-            siteService.addEntity(site);
-        }
-        else{
-            site.setStatusTime(LocalDateTime.now());
-            site.setStatus(IndexingStatus.FAILED.toString());
-            site.setLastError(msg);
-            siteService.addEntity(site);
-
-            PageEntity page = new PageEntity();
-            page.setContent("-");
-            page.setPath(pageUrl);
-            page.setCode(520);
-            page.setSiteId(site);
-            pageService.addEntity(page);
-        }
-    }
 
     //код http >=400
-    private void onHttpTroubleCode(int code){
-        System.out.println("Сайт недоступен. Код ошибки: " + code);
-        if (deep == 1){
-            site.setUrl(pageUrl);
-            site.setLastError("Сайт недоступен. Код ошибки: " + code);
-            site.setStatusTime(LocalDateTime.now());
-            site.setStatus(IndexingStatus.FAILED.toString());
-            site.setName("-");
-            siteService.addEntity(site);
-        }
-        else{
-            PageEntity page = new PageEntity();
-            page.setCode(code);
-            page.setContent("-");
-            page.setPath(pageUrl);
-            page.setSiteId(site);
-            pageService.addEntity(page);
-        }
-    }
-
-    //ошибка парсинга
-    private void onParsingError(Exception e){
-        System.out.println("Ошибка парсинга. Не удалось получить Jsoup.nodes.Document. Ошибка: " + e.getMessage());
-        if (deep == 1){
-            site.setLastError("Ошибка парсинга. Не удалось получить Jsoup.nodes.Document. Ошибка: " + e.getMessage());
-            site.setName("-");
-            site.setStatus(IndexingStatus.FAILED.toString());
-            site.setStatusTime(LocalDateTime.now());
-            site.setUrl(pageUrl);
-            siteService.addEntity(site);
-        }
-        else {
-            site.setLastError("Ошибка парсинга чтраницы \"" + pageUrl + "\". Не удалось получить Jsoup.nodes.Document." +
-                    " Ошибка: " + e.getMessage());
-            site.setStatusTime(LocalDateTime.now());
-            siteService.addEntity(site);
-
-            PageEntity page = new PageEntity();
-            page.setCode(520);
-            page.setContent("-");
-            page.setPath(getLocalUrl(pageUrl));
-            page.setSiteId(site);
-            pageService.addEntity(page);
-        }
+    private void onHttpTroubleCode(String msg){
+        site.setStatusTime(LocalDateTime.now());
+        site.setStatus(IndexingStatus.FAILED.toString());
+        site.setLastError(msg);
+        siteService.saveSite(site);
     }
 
     //сохранение текущего сайта при отсутствии ошибок
     private void saveCurrentSite(){
+        site.setName(getSiteName(document));
         site.setStatus(IndexingStatus.INDEXING.toString());
-        site.setName( getSiteName(document) );
         site.setStatusTime(LocalDateTime.now());
-        site.setUrl(pageUrl);
-        //siteRep.save(site);
-        siteService.addEntity(site);
+        site.setLastError("");
+        siteService.saveSite(site);
     }
 
     //сохранить текущуюю страницу при отсутствии ошибок
-    private PageEntity saveCurrentPage(int code, String content){
+    private PageEntity saveCurrentPage(int code){
         PageEntity page = new PageEntity();
         page.setCode(code);
-        //page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
-        page.setContent(content);
-        page.setPath(getLocalUrl(pageUrl) + " " + Thread.currentThread().getName() );
-        //page.setContent("thread " + Thread.currentThread().getName() + "  time " + LocalDateTime.now());
-        System.out.println(">>>> сохранение страницы " + page.getPath());
+        page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
+        page.setContent(document.toString());
         page.setSiteId(site);
         try {
-            return pageService.addEntity(page);
+            return pageService.savePage(page);
         }catch (Exception e){
-            System.out.println("Ошибка сохранения " + page.getPath() + " ");
-            return null;
+            System.out.println(">>> ош.сохр.стр. " + pageUrl);
         }
+        return null;
     }
 
     //сохранить (или обновить) лемму для текущего сайта
     private LemmaEntity saveLemma(String lemma, int count){
         LemmaEntity lemmaEntity = new LemmaEntity();
         lemmaEntity.setFrequency(count);
-        //lemmaEntity.setLemma(lemma + " / " + Thread.currentThread().getName());
         lemmaEntity.setLemma(lemma);
         lemmaEntity.setSiteId(site.getId());
         return lemmaService.saveLemma(lemmaEntity);
@@ -440,29 +287,29 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String,Intege
 
     //lucene
     private void luceneGo(PageEntity page){
-        System.out.println("### luceneGo " + pageUrl);
         LemmaEntity lemma = new LemmaEntity();
         lemma.setSiteId( site.getId() );
 
-        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(page.getContent());
-        for (Map.Entry<String, Integer> item : pageLemmaMap.entrySet()){
-            synchronized (siteLemmaMap) {
-                if (siteLemmaMap.containsKey(item.getKey())) {
-                    //обновить лемм. кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
-                    int lemmaCount = siteLemmaMap.get(item.getKey());
-                    LemmaEntity lemmaEntity = lemmaService.update(item.getKey(), lemmaCount + item.getValue());
-                    saveIndex(lemmaEntity.getId(), item.getValue(), page.getId());
-                    siteLemmaMap.put(item.getKey(), item.getValue() + lemmaCount);
-                } else {
-                    //создать лемму по данным из pageLemmaMap. И индекс.
-                    LemmaEntity lemmaEntity = saveLemma(item.getKey(), item.getValue());
-                    saveIndex(lemmaEntity.getId(), item.getValue(), page.getId());
-                    siteLemmaMap.put(item.getKey(), item.getValue());
+        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(document.toString());
 
-                }
+        for (Map.Entry<String, Integer> item : pageLemmaMap.entrySet()){
+            if (siteLemmaMap.containsKey(item.getKey())) {
+                //обновить лемм. кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
+                int lemmaCount = siteLemmaMap.get(item.getKey());
+                lemma = lemmaService.update(item.getKey(), lemmaCount + item.getValue());
+                saveIndex(lemma.getId(), item.getValue(), page.getId());
+                siteLemmaMap.put(item.getKey(), item.getValue() + lemmaCount);
+            } else {
+                //создать лемму по данным из pageLemmaMap. И индекс.
+                lemma = saveLemma(item.getKey(), item.getValue());
+                saveIndex(lemma.getId(), item.getValue(), page.getId());
+                siteLemmaMap.put(item.getKey(), item.getValue());
             }
+
         }
     }
+
+
 
 
 }

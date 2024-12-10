@@ -11,7 +11,7 @@ public interface PageService {
     long count();
 
     //сохранить странцу как сущность
-    PageEntity addEntity(PageEntity page);
+    PageEntity savePage(PageEntity page);
 
     //удалить все страницы по id сайта
     boolean delAllBySiteId(int siteId);

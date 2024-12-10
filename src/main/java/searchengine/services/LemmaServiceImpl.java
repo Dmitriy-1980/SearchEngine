@@ -5,6 +5,8 @@ import org.springframework.stereotype.Service;
 import searchengine.model.LemmaEntity;
 import searchengine.repositories.LemmaRepository;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class LemmaServiceImpl implements LemmaService{
@@ -46,9 +48,9 @@ public class LemmaServiceImpl implements LemmaService{
     //обновление записи по самой лемме
     @Override
     public LemmaEntity update(String lemma, int count){
-        LemmaEntity lemmaEntity = lemmaRep.getEntityByLemma(lemma);
-        lemmaEntity.setFrequency((float)count);
-        return lemmaRep.save(lemmaEntity);
+        List<LemmaEntity> list = lemmaRep.getEntityByLemma(lemma);
+        list.get(0).setFrequency((float)count);
+        return lemmaRep.save(list.get(0));
     }
 
 }

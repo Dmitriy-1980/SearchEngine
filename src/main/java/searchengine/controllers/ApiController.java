@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import searchengine.config.Config;
+import searchengine.config.ConfigAppl;
 import searchengine.config.Site;
 import searchengine.dto.CommandResult;
 import searchengine.dto.statistics.StatisticsResponse;
@@ -27,7 +27,7 @@ public class ApiController {
     private final StatisticsService statServ;
     private final Indexing indexing;
     private final LuceneService luceneService;
-    private final Config config;
+    private final ConfigAppl config;
     private final Search search;
 
 

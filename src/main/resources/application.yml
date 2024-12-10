@@ -1,8 +1,8 @@
 
 
 indexing-settings:
-  maxFrequency: 10 #макс кол страниц с данной леммой (отсев самых частых)
-  deepLimit: 2 #глубина поиска подстраниц/ уровень главной страницы=1
+  maxFrequency: 1000 #макс кол страниц с данной леммой (отсев самых частых)
+  deepLimit: 2 #глубина поиска подстраниц/ уровень главной страницы=1, без ограничений=0
   offset: 10 #размер порциирезультатов поиска
   limit: 50 #макс кол результатов поиска которые нужно вывести
   userAgent: LocalSearchBot #Mozilla/5.0 (Windows; U; WindowsNT 5.1; en-US; rv1.8.1.6) Gecko/20070725 Firefox/2.0.0.6
@@ -11,15 +11,15 @@ indexing-settings:
   timeout: 1000 #таймаут между обращениями к сайт
   readSubDomain: true #обрабатывать ли поддомены
   sites:
-#    - url: https://www.lenta.ru
-#      name: Лента.ру
-#    - url: https://www.skillbox.ru
-#      name: Skillbox
+    - url: https://www.lenta.ru
+      name: Лента.ру
+    - url: https://www.skillbox.ru
+      name: Skillbox
     - url: https://www.playback.ru
       name: PlayBack.Ru
 #    - url: https://mail.ru/
 #      name: mailRu
-
+  redissonHost: redis://127.0.0.1:6379 #расположение сервера Redis
 server:
   port: 8085
 

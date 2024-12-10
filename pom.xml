@@ -94,6 +94,7 @@
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
 <!--            <scope>runtime</scope>-->
+
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.liquibase/liquibase-core -->
@@ -112,6 +113,21 @@
             <version>1.18.1</version>
         </dependency>
 
+
+        <!-- для работы с Redis: -->
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-redis -->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-data-redis</artifactId>-->
+<!--            <version>3.4.0</version>-->
+<!--        </dependency>-->
+
+<!--        &lt;!&ndash; https://mvnrepository.com/artifact/org.redisson/redisson &ndash;&gt;-->
+<!--        <dependency>-->
+<!--            <groupId>org.redisson</groupId>-->
+<!--            <artifactId>redisson</artifactId>-->
+<!--            <version>3.40.1</version>-->
+<!--        </dependency>-->
 
 
         <!-- для тестов: -->

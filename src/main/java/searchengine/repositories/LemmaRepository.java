@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.LemmaEntity;
 
+import java.util.List;
+
 @Repository
 public interface LemmaRepository extends JpaRepository<LemmaEntity, Integer> {
 
@@ -17,7 +19,7 @@ public interface LemmaRepository extends JpaRepository<LemmaEntity, Integer> {
 
     //получить сущность по id
     @Query(nativeQuery = true, value = "SELECT * FROM lemma WHERE id=:paramId;")
-    LemmaEntity getEntityById(@Param("paramId") int lemmaId);
+    List<LemmaEntity> getEntityById(@Param("paramId") int lemmaId);
 
 
     //кол лемм по указанному id сайта
@@ -45,6 +47,6 @@ public interface LemmaRepository extends JpaRepository<LemmaEntity, Integer> {
 
     //получить id по слову
     @Query(nativeQuery = true, value = "SELECT * FROM lemma WHERE lemma = :paramLemma")
-    LemmaEntity getEntityByLemma(@Param("paramLemma") String lemma);
+    List<LemmaEntity> getEntityByLemma(@Param("paramLemma") String lemma);
 
 }

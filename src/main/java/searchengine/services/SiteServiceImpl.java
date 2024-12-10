@@ -15,7 +15,7 @@ public class SiteServiceImpl implements SiteService {
 
 
     @Override
-    public void addEntity(SiteEntity site){
+    public void saveSite(SiteEntity site){
         try{
             siteRep.save(site);
         }catch (Exception e){

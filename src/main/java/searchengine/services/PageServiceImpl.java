@@ -2,7 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.config.Config;
+import searchengine.config.ConfigAppl;
 import searchengine.model.PageEntity;
 import searchengine.repositories.PageRepository;
 import searchengine.repositories.SiteRepository;
@@ -12,7 +12,7 @@ import searchengine.repositories.SiteRepository;
 public class PageServiceImpl implements PageService {
     private final PageRepository pageRep;
     private final SiteRepository siteRep;
-    private Config config;
+    private ConfigAppl config;
 
     //кол страниц по заданному id сайта
     public int getCountBySiteId(int id){
@@ -26,11 +26,12 @@ public class PageServiceImpl implements PageService {
 
     //Добавить сущность
     @Override
-    public PageEntity addEntity(PageEntity page){
+    public PageEntity savePage(PageEntity page){
         try {
             return pageRep.save(page);
         }catch (Exception e){
             e.printStackTrace();
+            System.out.println(">>>> pgSrvImpl " + page.getPath() + "/ siteId " + page.getSiteId());
             return null;
         }
     }

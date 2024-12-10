@@ -20,7 +20,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "indexing-settings")
 @Configuration
 @RequiredArgsConstructor
-public class Config {
+public class ConfigAppl {
     private int deepLimit;
     private List<Site> sites;
     private int offset;
@@ -32,6 +32,8 @@ public class Config {
     private int responseWait; //время одижания ответа индексируемой страницы
     private boolean readSubDomain; //обрабатывать ли поддомены
     private int maxFrequency; //макс колстраниц с искомой леммой. (отсев чрезмерно распространенных)
+
+    private String redissonHost; //расположение сервера Redis
 
     //проверить список сайтов на уникальность
     // (защита от двойного парсинга при неаккуратном вводе в application)

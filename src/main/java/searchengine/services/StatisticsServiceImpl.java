@@ -2,7 +2,7 @@ package searchengine.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import searchengine.config.Config;
+import searchengine.config.ConfigAppl;
 import searchengine.config.Site;
 import searchengine.dto.statistics.DetailedStatisticsItem;
 import searchengine.dto.statistics.StatisticsData;
@@ -21,7 +21,7 @@ public class StatisticsServiceImpl implements StatisticsService {
     private final SiteService siteService;
     private final LemmaService lemmaService;
     private final PageService pageService;
-    private final Config config;
+    private final ConfigAppl config;
 
     //детальная инфа по сайту
     @Override

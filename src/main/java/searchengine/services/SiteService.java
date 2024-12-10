@@ -5,7 +5,7 @@ import searchengine.model.SiteEntity;
 public interface SiteService {
 
     //добавить сайт entity
-    void addEntity(SiteEntity site);
+    void saveSite(SiteEntity site);
 
     //найти кол записей
     long count();
