@@ -54,7 +54,7 @@ public class ConfigAppl {
     }
 
     //наличие в списке указанного адреса
-    private boolean isExistsUrl(ArrayList<Site> list, String url){
+    public boolean isExistsUrl(List<Site> list, String url){
         for (Site site : list){
             if (site.getUrl().equals(url)){
                 return true;

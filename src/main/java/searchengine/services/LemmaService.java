@@ -2,6 +2,8 @@ package searchengine.services;
 
 import searchengine.model.LemmaEntity;
 
+import java.util.List;
+
 public interface LemmaService {
 
     //добавить лемму
@@ -22,5 +24,12 @@ public interface LemmaService {
     //обновление записи по самой лемме
     LemmaEntity update(String lemma, int count);
 
+    //получить список лемм отсортированный по количеству страниц имеющих лемму
+    List<String> getLemmaListSortedByPagesCount(List<String> lemmas);
 
+    //получить список id по лемме (одно слово может несколько раз быть- на разных страницах)
+    List<Integer> getListIdByLemma(String word);
+
+//    //получить сумму rank всех лемм по списку
+//    Float getSummaryRank(List<Integer> lemmaIdList);
 }

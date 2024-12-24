@@ -12,26 +12,26 @@ import searchengine.model.SiteEntity;
 @Repository
 public interface SiteRepository extends JpaRepository<SiteEntity, Integer> {
 
-    //получить всю запись сайта по его url
-    @Query(nativeQuery = true, value = "SELECT * FROM site WHERE site.url=:paramUrl LIMIT 1")
-    SiteEntity findByUrl(@Param("paramUrl") String siteUrl);
+//    //получить всю запись сайта по его url
+//    @Query(nativeQuery = true, value = "SELECT * FROM site WHERE site.url=:paramUrl LIMIT 1")
+//    SiteEntity findByUrl(@Param("paramUrl") String siteUrl);
 
-    //получить сайт (entity) по его id
-    @Query(nativeQuery = true,value = "SELECT * FROM site WHERE id=:paramId)")
-    SiteEntity findById(@Param("paramId") int siteId);
+//    //получить сайт (entity) по его id
+//    @Query(nativeQuery = true,value = "SELECT * FROM site WHERE id=:paramId)")
+//    SiteEntity findById(@Param("paramId") int siteId);
 
-    //проверить наличие сайтов у которых индексация еще идет
-    @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM site WHERE status='INDEXING')")
-    boolean existIndexing();
+//    //проверить наличие сайтов у которых индексация еще идет
+//    @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM site WHERE status='INDEXING')")
+//    boolean existIndexing();
 
-    //проверить наличие сайта по url
-    @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM site WHERE url=:paramUrl)")
-    boolean existUrl(@Param("paramUrl") String siteUrl);
+//    //проверить наличие сайта по url
+//    @Query(nativeQuery = true, value = "SELECT EXISTS (SELECT * FROM site WHERE url=:paramUrl)")
+//    boolean existUrl(@Param("paramUrl") String siteUrl);
 
-    //удалить все
-    @Transactional
-    @Modifying
-    @Query(nativeQuery = true, value = "DELETE FROM site;")
-    void clear();
+//    //удалить все
+//    @Transactional
+//    @Modifying
+//    @Query(nativeQuery = true, value = "DELETE FROM site;")
+//    void clear();
 
 }

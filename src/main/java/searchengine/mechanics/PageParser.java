@@ -7,7 +7,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-//import org.redisson.api.RMap;
 import searchengine.config.ConfigAppl;
 import searchengine.model.*;
 import searchengine.services.*;
@@ -15,14 +14,17 @@ import searchengine.services.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.RecursiveAction;
 
-public class PageParser implements Runnable {//extends RecursiveAction
+public class PageParser extends RecursiveAction {//extends RecursiveAction
     private final String pageUrl;
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
-    private volatile Vector<String> linksSet; //лист ссылок всего сайта
-    private final HashMap<String, Integer> siteLemmaMap;//леммы всего сайта с кол их вхождений
+    private final Vector<String> linksSet; //лист ссылок всего сайта
+    private final ConcurrentHashMap<String, Integer> siteLemmaMap;//леммы всего сайта с кол их вхождений
+    private final ConcurrentHashMap<String, List<RecursiveAction>> taskList;//MAP с задачами
     private final ForkJoinPool pool;
     private final int deep;
     private String protocol; // протокол запроса (в виде http: или https: )
@@ -37,16 +39,19 @@ public class PageParser implements Runnable {//extends RecursiveAction
 /*В конструкторпередаются сервисы, конфиг приложения, пулл потоков - всегда одинаково.
 * deep-глубина вложенности обрабатываемой ссылки. Если deep==0 то это главная страница.
 * linkSet и siteLemmaMap коллекции ссылок и лемм одного сайта.Они сквозные для всего сайта
-* и нужны для контроля на уникальность ссылок и подсчета лемм без обращения к SQL-серверу. */
+* и нужны для контроля на уникальность ссылок и подсчета лемм без обращения к SQL-серверу.
+* taskList- структурадля отслеживания состояния задач. Вполнена, остановлена, ошибка*/
 
-public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integer> siteLemmaMap,
-                  ForkJoinPool pool,
+public PageParser(String pageUrl, ForkJoinPool pool,
+                  Vector<String> linksSet, ConcurrentHashMap<String, Integer> siteLemmaMap,
+                  ConcurrentHashMap<String, List<RecursiveAction>> taskList,
                   SiteService siteService, PageService pageService, LuceneService luceneService,
                   LemmaService lemmaService, IndexService indexService,
                   int deep, SiteEntity site, ConfigAppl config){
         this.pageUrl = pageUrl;
         this.linksSet = linksSet;
         this.siteLemmaMap = siteLemmaMap;
+        this.taskList = taskList;
         this.pool = pool;
         this.siteService = siteService;
         this.pageService = pageService;
@@ -67,7 +72,7 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integ
 
     @SneakyThrows
     @Override
-    public void run(){
+    public void compute(){
         PageEntity page = new PageEntity();
 
         Thread.sleep(config.getTimeout());
@@ -105,9 +110,10 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integ
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
         if (deep < config.getDeepLimit() || config.getDeepLimit() == 0){
             for (String link : linkOnPage){
-                PageParser pageParser = new PageParser(link, linksSet, siteLemmaMap, pool,
+                PageParser pageParser = new PageParser(link, pool, linksSet, siteLemmaMap, taskList,
                         siteService, pageService, luceneService, lemmaService , indexService, deep + 1, site, config);
                 //pool.submit(pageParser).fork(); //место роковой ошибки
+                taskList.get(site.getUrl()).add(pageParser);//задача добавлена по ключу-url сайта
                 pool.submit(pageParser);
             }
         }
@@ -244,11 +250,16 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integ
 
     //сохранение текущего сайта при отсутствии ошибок
     private void saveCurrentSite(){
-        site.setName(getSiteName(document));
-        site.setStatus(IndexingStatus.INDEXING.toString());
-        site.setStatusTime(LocalDateTime.now());
-        site.setLastError("");
-        siteService.saveSite(site);
+        if (deep == 1) {//парсим главную страницу
+            site.setName(getSiteName(document));
+            site.setStatus(IndexingStatus.INDEXING.toString());
+            site.setStatusTime(LocalDateTime.now());
+            site.setLastError("");
+        }
+        else{//страница не главная, сущность SiteEntity передана параметром
+            site.setStatusTime(LocalDateTime.now());
+        }
+        site = siteService.saveSite(site);
     }
 
     //сохранить текущуюю страницу при отсутствии ошибок
@@ -259,6 +270,7 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integ
         page.setContent(document.toString());
         page.setSiteId(site);
         try {
+            saveCurrentSite();//обновление времени
             return pageService.savePage(page);
         }catch (Exception e){
             System.out.println(">>> ош.сохр.стр. " + pageUrl);
@@ -267,9 +279,9 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integ
     }
 
     //сохранить (или обновить) лемму для текущего сайта
-    private LemmaEntity saveLemma(String lemma, int count){
+    private LemmaEntity saveLemma(String lemma, int frequancy){
         LemmaEntity lemmaEntity = new LemmaEntity();
-        lemmaEntity.setFrequency(count);
+        lemmaEntity.setFrequency(frequancy);
         lemmaEntity.setLemma(lemma);
         lemmaEntity.setSiteId(site.getId());
         return lemmaService.saveLemma(lemmaEntity);
@@ -290,22 +302,20 @@ public PageParser(String pageUrl, Vector<String> linksSet, HashMap<String, Integ
         LemmaEntity lemma = new LemmaEntity();
         lemma.setSiteId( site.getId() );
 
-        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(document.toString());
+        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(document.text());
 
         for (Map.Entry<String, Integer> item : pageLemmaMap.entrySet()){
             if (siteLemmaMap.containsKey(item.getKey())) {
                 //обновить лемм. кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
                 int lemmaCount = siteLemmaMap.get(item.getKey());
-                lemma = lemmaService.update(item.getKey(), lemmaCount + item.getValue());
-                saveIndex(lemma.getId(), item.getValue(), page.getId());
+                lemma = lemmaService.update(item.getKey(), lemmaCount + 1); //count+1
                 siteLemmaMap.put(item.getKey(), item.getValue() + lemmaCount);
             } else {
                 //создать лемму по данным из pageLemmaMap. И индекс.
-                lemma = saveLemma(item.getKey(), item.getValue());
-                saveIndex(lemma.getId(), item.getValue(), page.getId());
+                lemma = saveLemma(item.getKey(), 1);
                 siteLemmaMap.put(item.getKey(), item.getValue());
             }
-
+            saveIndex(lemma.getId(), item.getValue(), page.getId());
         }
     }
 

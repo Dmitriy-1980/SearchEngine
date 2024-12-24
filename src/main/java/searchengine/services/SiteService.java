@@ -5,7 +5,7 @@ import searchengine.model.SiteEntity;
 public interface SiteService {
 
     //добавить сайт entity
-    void saveSite(SiteEntity site);
+    SiteEntity saveSite(SiteEntity site);
 
     //найти кол записей
     long count();
@@ -17,7 +17,7 @@ public interface SiteService {
     boolean existIndexing();
 
     //удалить сайт по его id
-    boolean delById(int id);
+    void delById(int id);
 
     //проверить наличие сайта по url
     boolean existUrl(String url);
