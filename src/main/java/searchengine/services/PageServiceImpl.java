@@ -5,20 +5,16 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
-import searchengine.model.IndexEntity;
 import searchengine.model.PageEntity;
 import searchengine.model.QPageEntity;
 import searchengine.repositories.PageRepository;
-import searchengine.repositories.SiteRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +28,7 @@ public class PageServiceImpl implements PageService {
 
     //кол страниц по заданному siteId сайта
     public int getCountBySiteId(int siteId){
-        //return pageRep.getCountBySiteId(siteId);
-        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
+         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QPageEntity qPage = QPageEntity.pageEntity;
         return (int) jqf.selectFrom(qPage).where(qPage.siteId.id.eq(siteId)).stream().count();
     }
@@ -60,8 +55,7 @@ public class PageServiceImpl implements PageService {
     //удалить все
     @Override
     public void clear(){
-        //pageRep.clear();
-        pageRep.deleteAll();
+          pageRep.deleteAll();
     }
 
     //отфильтровать список page_id по заданному сайту (те убрать страницы не с указанного сайта)

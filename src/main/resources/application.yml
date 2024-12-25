@@ -9,7 +9,7 @@ indexing-settings:
   referer: http://www.google.
   responseWait : 10000 #ожидание ответа в мс
   timeout: 1000 #таймаут между обращениями к сайт
-  readSubDomain: true #обрабатывать ли поддомены
+  readSubDomain: false #обрабатывать ли поддомены //ЭТО ВООБЩЕ НЕЛЬЗЯ, НЕ УКЛАДЫВАЕТСЯ В ЗАДВНИЕ, поэтому пофиксить и убрать этот переключатель нафиг
   sites:
     - url: https://www.lenta.ru
       name: Лента.ру

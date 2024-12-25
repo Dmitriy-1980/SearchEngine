@@ -92,13 +92,13 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         for (Element item : links){
             if (item.attribute("href") == null) { continue; }
             String link = item.attribute("href").getValue();
-            link = getFullLink(link);
-            if (!isCorrectLink(link) || isSubdomain(link)) { continue; }
+            String FullLink = getFullLink(link);
+            if (!isCorrectLink(link) || isSubdomain(FullLink)) { continue; }
             //добавление уникальных ссылок в "сквозной список сайта" и локальный список страницы
             synchronized (linksSet) {
-                if (!linksSet.contains(link)) {
-                    linksSet.add(link);
-                    linkOnPage.add(link);
+                if (!linksSet.contains(FullLink)) {
+                    linksSet.add(FullLink);
+                    linkOnPage.add(FullLink);
                 }
             }
         }
@@ -133,31 +133,34 @@ public PageParser(String pageUrl, ForkJoinPool pool,
 
     //проверить ссылку на соответствие требуему виду (
     private boolean isCorrectLink(String url){
-        if (url.equals(site.getUrl())){
-            return false;
-        }
-
-        if (url.length() < 2){
-            return false;
-        }
-
-        if (url.contains("#")){
-            return false;
-        }
-
-        if (url.startsWith("https://") || (url.startsWith("http://"))){
-            return true;
-        }
-
-        if (url.startsWith("/") && url.length()>1){
-            return true;
-        }
-
-        int k = site.getUrl().indexOf("//");
-        if ( url.startsWith( site.getUrl().substring(k) )){
-            return true;
-        }
-
+//        if (url.equals(site.getUrl())){
+//            return false;
+//        }
+//
+//        if (url.length() < 2){
+//            return false;
+//        }
+//
+//        if (url.contains("#")){
+//            return false;
+//        }
+//
+//        if (url.startsWith("https://") || (url.startsWith("http://"))){
+//            return true;
+//        }
+//
+//        if (url.startsWith("/") && url.length()>1){
+//            return true;
+//        }
+//
+//        int k = site.getUrl().indexOf("//");
+//        if ( url.startsWith( site.getUrl().substring(k) )){
+//            return true;
+//        }
+        if (url.startsWith("/") && url.length() > 1){ return true; }
+        if (url.startsWith("//") && url.length() > 5){ return true; }
+        if (url.startsWith("http://") && url.length() > 10){ return true; }
+        if (url.startsWith("https://") && url.length() > 11){ return true; }
         return false;
     }
 
@@ -168,50 +171,16 @@ public PageParser(String pageUrl, ForkJoinPool pool,
 
     //получить локальный адрес страницы
     private String getLocalUrl(String fullUrl){
-        String url = fullUrl;
-        if (!fullUrl.endsWith("/")){
-            url = fullUrl + "/";
-        }
-
-        //если первая страница
-        if (deep == 1) {
-            return "/";
-        }
-
-        //полная ссылка
-        if (fullUrl.startsWith(site.getUrl())){
-            return fullUrl.substring(site.getUrl().length());
-        }
-
-        //ссылка без протокола
-        if ((url.startsWith("//"))){
-            return (protocol + url).substring(site.getUrl().length());
-        }
-
-        //если ссылка локальная
-        if (url.startsWith("/")){
-            return url;
-        }
-
-        return url;
+        //вытаскивает локальную ссылку из полной.
+        //В отсутствии поддоменов нужно т олько адрес сайта обрезать
+        return fullUrl.substring(site.getUrl().length());
     }
 
     //получить полную ссылку
     private String getFullLink(String link){
-        String rez = "";
-
-        if (link.startsWith(site.getUrl()) ||
-                link.startsWith("https://") || link.startsWith("http://")){
-            rez = link;
-        }
-        else if (link.startsWith("//")) {
-            int pos = site.getUrl().indexOf("//");
-            rez = site.getUrl().substring(0,pos) + link;
-        }
-        else if (link.startsWith("/")) {
-            rez = site.getUrl() + link.substring(1);
-        }
-        return rez;
+        if (link.startsWith("/")){ return site.getUrl() + link; }
+        if (link.startsWith("//")){ return protocol + link; }
+        return link;
     }
 
     //является ли поддоменом (домен- адрес сайта)
@@ -219,6 +188,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         if (config.isReadSubDomain()) {
             return false;
         }
+
 
         if (url.startsWith(site.getUrl())){
             return false;
@@ -266,7 +236,8 @@ public PageParser(String pageUrl, ForkJoinPool pool,
     private PageEntity saveCurrentPage(int code){
         PageEntity page = new PageEntity();
         page.setCode(code);
-        page.setPath(getLocalUrl(getLocalUrl(pageUrl)));
+        if (deep == 1){ page.setPath("/"); }
+        else { page.setPath(getLocalUrl(pageUrl)); }
         page.setContent(document.toString());
         page.setSiteId(site);
         try {

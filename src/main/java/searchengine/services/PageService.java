@@ -1,7 +1,6 @@
 package searchengine.services;
 
 import searchengine.model.PageEntity;
-
 import java.util.List;
 
 public interface PageService {

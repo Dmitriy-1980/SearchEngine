@@ -41,8 +41,9 @@ public class ConfigAppl {
         ArrayList<Site> tmpList = new ArrayList<>();
 
         for (Site site : sites){
-            if (!site.getUrl().endsWith("/")){
-                site.setUrl(site.getUrl() + "/");
+            if (site.getUrl().endsWith("/")){
+                int l = site.getUrl().length();
+                site.setUrl(site.getUrl().substring(0, l-1));
             }
             if (!isExistsUrl(tmpList, site.getUrl())){
                 tmpList.add(site);

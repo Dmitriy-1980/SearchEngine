@@ -6,10 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import searchengine.config.ConfigAppl;
 import searchengine.model.*;
 import searchengine.services.*;
 
@@ -23,9 +21,7 @@ public class Search {
     private final LuceneService luceneService;
     private final LemmaService lemmaService;
     private final IndexService indexService;
-    private final JdbcTemplate jdbcTemplate;
     private final PageService pageService;
-    private final ConfigAppl configAppl;
     @PersistenceContext
     private final EntityManager entityManager;
 

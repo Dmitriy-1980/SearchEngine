@@ -1,11 +1,9 @@
 package searchengine.services;
 
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.IndexingStatus;
@@ -36,7 +34,6 @@ public class SiteServiceImpl implements SiteService {
     //получить сайт по его URL и вернуть Entity
     @Override
     public SiteEntity findByUrl(String url) {
-        //return siteRep.findByUrl(url);
         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QSiteEntity qSite = QSiteEntity.siteEntity;
         return jqf.selectFrom(qSite).where(qSite.url.eq(url)).fetchOne();
@@ -48,7 +45,6 @@ public class SiteServiceImpl implements SiteService {
         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QSiteEntity qSite = QSiteEntity.siteEntity;
         long count = jqf.selectFrom(qSite).where(qSite.status.eq(IndexingStatus.INDEXING.toString())).fetch().stream().count();
-        //BooleanExpression ex = jqf.selectFrom(qSite).where(qSite.status.eq(IndexingStatus.INDEXING.toString())).exists();
         return (count > 0);
     }
 
@@ -61,7 +57,6 @@ public class SiteServiceImpl implements SiteService {
     //проверить наличие сайта по url
     @Override
     public boolean existUrl(String url){
-        //return siteRep.existUrl(url);
         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QSiteEntity qSite = QSiteEntity.siteEntity;
         long count = jqf.selectFrom(qSite).where(qSite.url.eq(url)).stream().count();
@@ -71,7 +66,6 @@ public class SiteServiceImpl implements SiteService {
     //удалить все
     @Override
     public void clear(){
-        //siteRep.clear();
         siteRep.deleteAll();
     }
 }

@@ -5,19 +5,15 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
 import searchengine.model.IndexEntity;
-import searchengine.model.LemmaEntity;
-import searchengine.model.QIndexEntity;
 import searchengine.model.QSiteEntity;
 import searchengine.repositories.IndexRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service

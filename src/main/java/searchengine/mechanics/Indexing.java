@@ -15,7 +15,6 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveAction;
 
 @Getter
@@ -99,15 +98,28 @@ public class Indexing {
         }
 
         int sitesCount = taskList.size();
+        //сперва создать карту <url-сайта,cстатус> и выставить всем сайтам INDEXING
         HashMap<String, String> siteStatus = new HashMap<>(sitesCount);//<url,status>
         for (String key : taskList.keySet()){
             siteStatus.put(key, IndexingStatus.INDEXING.toString());
         }
+        //перебирать список задач до тех пор, пока он не опустеет
+        //Из-за сложностей с синхронизацией - обнаруженный опустевший список удаляется из карты полеочередного прохода по ней.
         while (true){
+            String keyForDeleteWhenListIsEmpty = "";
             for (Map.Entry<String, List<RecursiveAction>> item : taskList.entrySet()){
+                if (item.getValue().isEmpty()){
+                    keyForDeleteWhenListIsEmpty = item.getKey();
+                    break;
+                }
+
                 if (findCompletedTaskWithExc( item.getValue() ))
                 { siteStatus.put(item.getKey(), IndexingStatus.FAILED.toString()); }
             }
+            if (!keyForDeleteWhenListIsEmpty.isEmpty()){
+                taskList.remove(keyForDeleteWhenListIsEmpty);
+            }
+
             if (taskList.isEmpty()) { break; }
         }
 
@@ -126,14 +138,19 @@ public class Indexing {
     //удаление отработавших задач. Вернуть true если есть прерванные.
     private boolean findCompletedTaskWithExc(List<RecursiveAction> list){
         boolean result = false;
-        Iterator<RecursiveAction> iterator = list.iterator();
-        while (iterator.hasNext()){
-            RecursiveAction ra = iterator.next();
-            if (ra.isDone()){
-                if (ra.isCompletedAbnormally()){ result = true; }
-                iterator.remove();
+        synchronized (list) {
+            Iterator<RecursiveAction> iterator = list.iterator();
+            while (iterator.hasNext()) {
+                RecursiveAction ra = iterator.next();
+                if (ra.isDone()) {
+                    if (ra.isCompletedAbnormally()) {
+                        result = true;
+                    }
+                    iterator.remove();
+                }
             }
         }
+        System.out.println("Indexing.findCompletedTaskWithExc");
         return result;
     }
 
@@ -166,8 +183,8 @@ public class Indexing {
 
     //удалить все данные из БД
     private void clearDB(){
+        pageService.clear();//page имеет в поле site - ее надо первой грохать
         siteService.clear();
-        pageService.clear();
         lemmaService.clear();
         indexService.clear();
     }

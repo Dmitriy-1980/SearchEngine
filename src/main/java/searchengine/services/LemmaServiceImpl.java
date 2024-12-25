@@ -8,13 +8,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
-import searchengine.model.IndexEntity;
 import searchengine.model.LemmaEntity;
 import searchengine.model.QLemmaEntity;
 import searchengine.model.QSiteEntity;
 import searchengine.repositories.LemmaRepository;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -103,17 +101,5 @@ public class LemmaServiceImpl implements LemmaService{
         cq.select(root.get("id")).where(cb.equal(root.get("lemma"), word));
         return entityManager.createQuery(cq).getResultList();
     }
-
-//    //получить сумму rank всех лемм по списку
-//    @Override
-//    public Float getSummaryRank(List<Integer> lemmaIdList){
-//        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-//        CriteriaQuery<Float> cq = cb.createQuery(Float.class);
-//        Root<LemmaEntity> root = cq.from(LemmaEntity.class);
-//        CriteriaBuilder.In<Integer> inList = cb.in(root.get("id"));
-//        lemmaIdList.forEach(id -> inList.value(id));
-//        cq.select(cb.sum(root.get("rank"))).where(inList);
-//        return entityManager.createQuery(cq).getSingleResult();
-//    }
 
 }

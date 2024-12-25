@@ -1,8 +1,6 @@
 package searchengine.services;
 
 import searchengine.model.IndexEntity;
-import searchengine.model.LemmaEntity;
-
 import java.util.List;
 
 public interface IndexService {
