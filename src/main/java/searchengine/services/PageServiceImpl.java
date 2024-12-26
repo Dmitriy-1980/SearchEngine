@@ -76,7 +76,7 @@ public class PageServiceImpl implements PageService {
         pageIdList.forEach(id -> inList.value(id));
 
         cq.select(root.get("id"))
-                .where(inList, cb.equal(root.get("siteId"), siteId));
+                .where(inList, cb.equal(root.get("siteId").get("id"), siteId));
 
         return entityManager.createQuery(cq).getResultList();
     }
