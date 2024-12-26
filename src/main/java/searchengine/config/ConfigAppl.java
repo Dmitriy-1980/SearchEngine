@@ -45,7 +45,7 @@ public class ConfigAppl {
                 int l = site.getUrl().length();
                 site.setUrl(site.getUrl().substring(0, l-1));
             }
-            if (!isExistsUrl(tmpList, site.getUrl())){
+            if (!tmpList.contains(site)){
                 tmpList.add(site);
             }
         }
@@ -55,8 +55,8 @@ public class ConfigAppl {
     }
 
     //наличие в списке указанного адреса
-    public boolean isExistsUrl(List<Site> list, String url){
-        for (Site site : list){
+    public boolean isExistsUrl(String url){
+        for (Site site : sites){
             if (site.getUrl().equals(url)){
                 return true;
             }

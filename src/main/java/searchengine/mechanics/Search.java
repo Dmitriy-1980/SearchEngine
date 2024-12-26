@@ -8,6 +8,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import searchengine.config.ConfigAppl;
+import searchengine.dto.PageOnRequest;
+import searchengine.dto.SearchResult;
 import searchengine.model.*;
 import searchengine.services.*;
 
@@ -22,19 +25,38 @@ public class Search {
     private final LemmaService lemmaService;
     private final IndexService indexService;
     private final PageService pageService;
+    private final SiteService siteService;
+    private final ConfigAppl configAppl;
     @PersistenceContext
     private final EntityManager entityManager;
 
-    //выполнить поисковый запрос
-    public boolean search(String query, String siteUrl) throws IOException{
+    //выполнить поисковый запрос:
+    //1 получить список ID подходящих страниц
+    //2 пересчитать ранги и сформировать список объектов с даными по страницам
+    //3 получить сниппеты
+    //4 формировать ответ заданного формата
+    public SearchResult search(String query, String siteUrl) throws IOException{
+
+        if (query.isEmpty())
+        { return onNegativeResult("Задан пустой поисковый запрос"); }
+        if (!siteUrl.isEmpty() && !configAppl.isExistsUrl(siteUrl) )
+        { return onNegativeResult("Заданый сайт не из списка индексации."); }
+
         //получить список id подходящихстраниц
         List<Integer> listPageId = getSuitablePageIdList(query, siteUrl);
-
+        if (listPageId.isEmpty())
+        { return onNegativeResult("Заданные слова в месте не встречаются."); }
         //посчитать ранги страниц
-        List<PageRelevance> listPageRel = getRankLemma(listPageId);
+        List<PageOnRequest> pagesOnRequests = getRankLemma(listPageId);
+        //todo получить сниппет
+        //getSnippet(String html, List<String> lemma)
+        //формирование ответа
+        SearchResult result = new SearchResult();
+        result.setResult(true);
+        result.setCount( pagesOnRequests.size() );
+        result.setData( pagesOnRequests );
 
-
-        return false;
+        return result;
     }
 
     //Получить из запроса леммы слов. Получить список их id по убыванию частоты.
@@ -45,8 +67,8 @@ public class Search {
 
         List<String> lemmaList = new ArrayList<>();
         List<Integer> listPageId = new ArrayList<>();//список id страниц с заданными леммами
-        List<Integer> listLemmaId = new ArrayList<>();
-        List<IndexEntity> indexList = new ArrayList<>();//список походящих индекстов
+        //List<Integer> listLemmaId = new ArrayList<>();
+        //List<IndexEntity> indexList = new ArrayList<>();//список походящих индекстов
 
         String sqlQuery, sqlSubQuery, sqlSubSubQuery;
 
@@ -75,16 +97,16 @@ public class Search {
 
 
     //получить ранги
-    private List<PageRelevance> getRankLemma(List<Integer> listPageId){
+    private List<PageOnRequest> getRankLemma(List<Integer> listPageId){
         //* todo не написано еще
         float maxRel = 0;
         List<Integer> listLemmaId;
-        List<PageRelevance> pageRelList = new ArrayList<>();
+        List<PageOnRequest> pageRelList = new ArrayList<>();
         //расчет абсолютной релевантности для страниц
         for (int pageId : listPageId){
             listLemmaId = indexService.getAllLemmaIdByPageId(pageId);
             float absRel = indexService.getSummaryRank(listLemmaId);
-            PageRelevance pr = new PageRelevance();
+            PageOnRequest pr = new PageOnRequest();
             PageEntity pageEntity = pageService.getPage(pageId);
 
             Document document = Jsoup.parse(pageEntity.getContent());
@@ -95,20 +117,26 @@ public class Search {
             pr.setTitle(title);
             pr.setSnipped("-");
             pr.setRelevance(absRel);
+            pr.setSite( pageEntity.getSiteId().getUrl() );
+            pr.setSiteName( pageEntity.getSiteId().getName() );
             insertPageRelevance(pageRelList, pr);
             maxRel = Math.max(maxRel, absRel);
 
         }
-        //расчет относительной релевантности
-        for (PageRelevance item : pageRelList){
+
+
+
+        //расчет относительной релевантности и внесение данных посайту
+        for (PageOnRequest item : pageRelList){
             item.setRelevance( item.getRelevance()/maxRel );
+
         }
 
         return pageRelList;
     }
 
-    //вставить объект pageRelevance в список согласно релевантности
-    private void insertPageRelevance(List<PageRelevance> list, PageRelevance pr){
+    //вставить объект pageRelevance в сортированный список согласно релевантности
+    private void insertPageRelevance(List<PageOnRequest> list, PageOnRequest pr){
         if (list.isEmpty()){ list.add(pr); return; }
 
         int posForInsert = 0;
@@ -145,4 +173,24 @@ public class Search {
         return null;
     }
 
+
+    //пустой запрос, сайт не из списка или нет результатов
+    private SearchResult onNegativeResult(String msg){
+        SearchResult searchResult = new SearchResult();
+        searchResult.setResult(false);
+        searchResult.setError(msg);
+        return searchResult;
+    }
+
+    //НЕКАЯ ошибка при работе поисковика
+    private SearchResult onSearchException(){
+        SearchResult searchResult = new SearchResult();
+        searchResult.setResult(false);
+        searchResult.setError("Непредвиденная ошибка.");
+        return searchResult;
+    }
+
+
 }
+
+

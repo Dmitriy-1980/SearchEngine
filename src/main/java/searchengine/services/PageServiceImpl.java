@@ -62,7 +62,7 @@ public class PageServiceImpl implements PageService {
     @Override
     public List<Integer> filterPageIdListBySite(List<Integer> pageIdList, String url){
         if (url == null || url.isEmpty()
-                || !configAppl.isExistsUrl(configAppl.getSites(),url)
+                || !configAppl.isExistsUrl(url)
                 || !siteService.existUrl(url)){
             return pageIdList;
         }

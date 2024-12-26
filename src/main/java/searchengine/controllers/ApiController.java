@@ -86,75 +86,18 @@ public class ApiController {
 
 
     @GetMapping("/search")
-    private Serializable search(@RequestParam("query") String query, @RequestParam("site") String siteUrl) {
+    private ResponseEntity<?> search(@RequestParam("query") String query, @RequestParam("site") String siteUrl) {
         System.out.println(query + "   " + siteUrl);
-
-        if (query.isEmpty()){
-            return onEmptyQuery();
+        try{
+            return new ResponseEntity<>(search.search(query, siteUrl), HttpStatus.OK);
+        }catch (IOException e){
+            CommandResult commandResult = new CommandResult();
+            commandResult.setResult(false);
+            commandResult.setError("Непредвиденная ошибка.");
+            return new ResponseEntity<>(commandResult, HttpStatus.valueOf(500));
         }
-
-        if (siteUrl.isEmpty()){
-            //запуск для всех сайтов списка
-            try {
-                search.search(query, "");
-                //todo тут ответ- результат поиска
-            }catch (IOException e){
-                e.printStackTrace();
-                return onSearchException();
-            }
-        }
-        else{
-            String url = checkUrl(siteUrl);
-            if (url.isEmpty()){
-                return onAlienSite();
-            }else {
-                //запуск для конкретного сайта
-                System.out.println("one");
-            }
-        }
-        return null;
     }
 
-    //(этот пункт неочевиден) проверить адрес сайта на соответствие формату,
-    //принадлежности к индксируемому списку
-    //и вернуть или пустую строку""(если не подходит) или url без слеша в конце
-    private String checkUrl(String siteUrl){
-       String url;
-       if (siteUrl.endsWith("/")){
-           url = siteUrl.substring(0, siteUrl.length() - 1);
-       } else {
-           url = siteUrl;
-       }
 
-       for (Site site : config.getSites()){
-           if (url.equals( site.getUrl() )){
-               return url;
-           }
-       }
-       return "";
-    }
 
-    //ответ на пустой запрос
-    private CommandResult onEmptyQuery(){
-        CommandResult response = new CommandResult();
-        response.setResult(false);
-        response.setError("Задан пустой поисковый запрос");
-        return response;
-    }
-
-    //сайт не из списка индексации
-    private CommandResult onAlienSite(){
-        CommandResult response = new CommandResult();
-        response.setResult(false);
-        response.setError("Заданый сайт не из списка индексации.");
-        return response;
-    }
-
-    //ошибка при работе поисковика
-    private CommandResult onSearchException(){
-        CommandResult response = new CommandResult();
-        response.setResult(false);
-        response.setError("Внутренняя ошибка сервера.");
-        return response;
-    }
 }
