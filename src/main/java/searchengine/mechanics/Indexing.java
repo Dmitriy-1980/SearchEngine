@@ -193,10 +193,10 @@ public class Indexing {
     private void clearSiteData(String siteUrl){
         if (siteService.existUrl(siteUrl)){
             int siteId = siteService.findByUrl(siteUrl).getId();
+            indexService.delAllBySiteUrl(siteUrl);
+            lemmaService.delAllBySiteUrl(siteUrl);
             pageService.delAllBySiteId(siteId);
             siteService.delById(siteId);
-            lemmaService.delAllBySiteUrl(siteUrl);
-            indexService.delAllBySiteUrl(siteUrl);
         }
     }
 

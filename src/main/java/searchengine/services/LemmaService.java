@@ -21,8 +21,8 @@ public interface LemmaService {
     //удалить все
     void clear();
 
-    //обновление записи по самой лемме
-    LemmaEntity update(String lemma, int count);
+    //обновление записи по самой лемме (тк леммы для разных сайтов могут пересекаться, то нужна привязка к сайту)
+    LemmaEntity update(int siteId, String lemma, int count);
 
     //получить список лемм отсортированный по количеству страниц имеющих лемму
     List<String> getLemmaListSortedByPagesCount(List<String> lemmas);

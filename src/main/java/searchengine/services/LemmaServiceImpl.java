@@ -47,7 +47,7 @@ public class LemmaServiceImpl implements LemmaService{
         //return lemmaRep.getCountBySiteId(id);
         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QLemmaEntity qLemma = QLemmaEntity.lemmaEntity;
-        return  (int) jqf.selectFrom(qLemma).stream().count();
+        return  (int) jqf.selectFrom(qLemma).where(qLemma.siteId.eq(id)).stream().count();
     }
 
     //кол записей
@@ -61,13 +61,13 @@ public class LemmaServiceImpl implements LemmaService{
         lemmaRep.deleteAll();
     }
 
-    //обновление записи по самой лемме
+    //обновление записи по самой лемме (тк леммы для разных сайтов могут пересекаться, то нужна привязка к сайту)
     @Override
-    public LemmaEntity update(String lemma, int count){
+    public LemmaEntity update(int siteId, String lemma, int count){
         //List<LemmaEntity> list = lemmaRep.getEntityByLemma(lemma);
         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QLemmaEntity qLemma = QLemmaEntity.lemmaEntity;
-        LemmaEntity lemmaEntity = jqf.selectFrom(qLemma).where(qLemma.lemma.eq(lemma)).fetchOne();
+        LemmaEntity lemmaEntity = jqf.selectFrom(qLemma).where(qLemma.lemma.eq(lemma)).where(qLemma.siteId.eq(siteId)).fetchOne();
         lemmaEntity.setFrequency((float)count);
         return lemmaRep.save(lemmaEntity);
     }

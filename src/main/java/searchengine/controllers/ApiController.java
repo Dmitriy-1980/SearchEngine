@@ -86,7 +86,8 @@ public class ApiController {
 
 
     @GetMapping("/search")
-    private ResponseEntity<?> search(@RequestParam("query") String query, @RequestParam("site") String siteUrl) {
+    private ResponseEntity<?> search(@RequestParam(name = "query", defaultValue = "") String query,
+                                     @RequestParam(name = "site", defaultValue = "") String siteUrl) {
         System.out.println(query + "   " + siteUrl);
         try{
             return new ResponseEntity<>(search.search(query, siteUrl), HttpStatus.OK);

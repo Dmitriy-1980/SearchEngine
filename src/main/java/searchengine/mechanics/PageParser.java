@@ -133,30 +133,6 @@ public PageParser(String pageUrl, ForkJoinPool pool,
 
     //проверить ссылку на соответствие требуему виду (
     private boolean isCorrectLink(String url){
-//        if (url.equals(site.getUrl())){
-//            return false;
-//        }
-//
-//        if (url.length() < 2){
-//            return false;
-//        }
-//
-//        if (url.contains("#")){
-//            return false;
-//        }
-//
-//        if (url.startsWith("https://") || (url.startsWith("http://"))){
-//            return true;
-//        }
-//
-//        if (url.startsWith("/") && url.length()>1){
-//            return true;
-//        }
-//
-//        int k = site.getUrl().indexOf("//");
-//        if ( url.startsWith( site.getUrl().substring(k) )){
-//            return true;
-//        }
         if (url.startsWith("/") && url.length() > 1){ return true; }
         if (url.startsWith("//") && url.length() > 5){ return true; }
         if (url.startsWith("http://") && url.length() > 10){ return true; }
@@ -279,8 +255,8 @@ public PageParser(String pageUrl, ForkJoinPool pool,
             if (siteLemmaMap.containsKey(item.getKey())) {
                 //обновить лемм. кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
                 int lemmaCount = siteLemmaMap.get(item.getKey());
-                lemma = lemmaService.update(item.getKey(), lemmaCount + 1); //count+1
-                siteLemmaMap.put(item.getKey(), item.getValue() + lemmaCount);
+                lemma = lemmaService.update(site.getId(), item.getKey(), lemmaCount + 1); //count+1
+                siteLemmaMap.put(item.getKey(), lemmaCount + 1); //item.getValue()
             } else {
                 //создать лемму по данным из pageLemmaMap. И индекс.
                 lemma = saveLemma(item.getKey(), 1);
