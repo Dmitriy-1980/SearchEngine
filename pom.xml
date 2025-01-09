@@ -129,6 +129,23 @@
             <scope>provided</scope>
             <classifier>jakarta</classifier>
         </dependency>
+
+        <!-- lucene-highlighter - фрейм для поиска по тексту -->
+        <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-highlighter -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-highlighter</artifactId>
+            <version>10.1.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.apache.lucene/lucene-core -->
+        <dependency>
+            <groupId>org.apache.lucene</groupId>
+            <artifactId>lucene-core</artifactId>
+            <version>10.1.0</version>
+        </dependency>
+
+
         <!--  -->
     </dependencies>
 

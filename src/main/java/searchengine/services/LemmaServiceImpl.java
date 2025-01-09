@@ -72,7 +72,8 @@ public class LemmaServiceImpl implements LemmaService{
         return lemmaRep.save(lemmaEntity);
     }
 
-    //получить список лемм отсортированный по количеству страниц имеющих лемму
+    //получить список лемм отсортированный по количеству страниц с каждой (частоте)
+    //Сортировка в порядке возрастания их частоты
     //с учетом макс кол страниц с ней(отсев очень распространенных слов)
     @Override
     public List<String> getLemmaListSortedByPagesCount(List<String> lemmas){
@@ -89,7 +90,7 @@ public class LemmaServiceImpl implements LemmaService{
                 .where(inList)
                 .groupBy(root.get("lemma"))
                 .having(cb.lt(cb.count(root), configAppl.getMaxFrequency() ))
-                .orderBy(cb.desc(count));
+                .orderBy(cb.asc(count));
         return entityManager.createQuery(cq).getResultList();
     }
 

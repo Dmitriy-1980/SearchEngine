@@ -3,6 +3,15 @@ package searchengine.mechanics;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.morphology.LuceneMorphology;
+import org.apache.lucene.morphology.russian.RussianAnalyzer;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
+import org.apache.lucene.search.TermQuery;
+import org.apache.lucene.search.highlight.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -27,6 +36,7 @@ public class Search {
     private final PageService pageService;
     private final SiteService siteService;
     private final ConfigAppl configAppl;
+    private final LuceneMorphology luceneMorphology;
     @PersistenceContext
     private final EntityManager entityManager;
 
@@ -42,14 +52,21 @@ public class Search {
         if (!siteUrl.isEmpty() && !configAppl.isExistsUrl(siteUrl) )
         { return onNegativeResult("Заданый сайт не из списка индексации."); }
 
+        //получить список лемм отсортированный в порядке убывания кол страниц с ними
+        //отсеивая слишко мчасто встречающиеся (где кол > предельного ConfigAppl.maxFrequency )
+        List<String> lemmaList = new ArrayList<>();
+        lemmaList = lemmaService.getLemmaListSortedByPagesCount( luceneService.getUniqLemmaList(query) );
+        if (lemmaList.isEmpty())
+            { return onNegativeResult("Заданные слова в месте не встречаются.");} //нет лемм => нет результата
+
         //получить список id подходящихстраниц
-        List<Integer> listPageId = getSuitablePageIdList(query, siteUrl);
+        List<Integer> listPageId = getSuitablePageIdList(query, siteUrl, lemmaList);
         if (listPageId.isEmpty())
         { return onNegativeResult("Заданные слова в месте не встречаются."); }
-        //посчитать ранги страниц
-        List<PageOnRequest> pagesOnRequests = getRankLemma(listPageId);
-        //todo получить сниппет
-        //getSnippet(String html, List<String> lemma)
+
+        //получить список объектов- результатов поиска
+        List<PageOnRequest> pagesOnRequests = getPagesOnRequest(listPageId, lemmaList);
+
         //формирование ответа
         SearchResult result = new SearchResult();
         result.setResult(true);
@@ -59,13 +76,15 @@ public class Search {
         return result;
     }
 
-    //Получить из запроса леммы слов. Получить список их id по убыванию частоты.
+
+
+
     //Получить список page_id подходящих страниц для первой леммы.
     //Отфильтровать их в зависимости от того указан ли конкретный сайт или нет.
     //Фильтровать их далее добавляя к условиям поочередно леммы.
-    private List<Integer> getSuitablePageIdList(String query, String siteUrl) throws IOException{
+    private List<Integer> getSuitablePageIdList(String query, String siteUrl, List<String> lemmaList) throws IOException{
 
-        List<String> lemmaList = new ArrayList<>();
+        //List<String> lemmaList = new ArrayList<>();
         List<Integer> listPageId = new ArrayList<>();//список id страниц с заданными леммами
         //List<Integer> listLemmaId = new ArrayList<>();
         //List<IndexEntity> indexList = new ArrayList<>();//список походящих индекстов
@@ -75,12 +94,12 @@ public class Search {
 
         //получить список лемм отсортированный в порядке убывания кол страниц с ними
         //отсеивая слишко мчасто встречающиеся (где кол > предельного ConfigAppl.maxFrequency )
-        lemmaList = lemmaService.getLemmaListSortedByPagesCount( luceneService.getUniqLemmaList(query) );
+        //lemmaList = lemmaService.getLemmaListSortedByPagesCount( luceneService.getUniqLemmaList(query) );
 
-        if (lemmaList.isEmpty()) { return Collections.emptyList();} //нет лемм => нет результата
+        //if (lemmaList.isEmpty()) { return Collections.emptyList();} //нет лемм => нет результата
 
 
-        //получить список page_id для самой распространенной леммы
+        //получить список page_id для самой редкой леммы
         listPageId = indexService.getPageIdListByLemma( lemmaList.get(0) );
 
         //отфильтровать список page_id в соответствии с заданным для поиска сайтом
@@ -96,16 +115,21 @@ public class Search {
     }
 
 
-    //получить ранги
-    private List<PageOnRequest> getRankLemma(List<Integer> listPageId){
-        //* todo не написано еще
+
+
+
+    //получить список объектов - результатов поиска
+    private List<PageOnRequest> getPagesOnRequest(List<Integer> listPageId, List<String> lemmaList){
         float maxRel = 0;
         List<Integer> listLemmaId;
         List<PageOnRequest> pageRelList = new ArrayList<>();
-        //расчет абсолютной релевантности для страниц
+
+        //создать объект-результат поиска для каждой страницы
         for (int pageId : listPageId){
+            //расчет абсолютной релевантности для текущей страницы
             listLemmaId = indexService.getAllLemmaIdByPageId(pageId);
             float absRel = indexService.getSummaryRank(listLemmaId);
+
             PageOnRequest pr = new PageOnRequest();
             PageEntity pageEntity = pageService.getPage(pageId);
 
@@ -115,7 +139,11 @@ public class Search {
 
             pr.setUri(pageEntity.getPath());
             pr.setTitle(title);
-            pr.setSnipped("-");
+            //todo ищем сниппеты и вставляем в объект-результат
+            //String s = "<B>штат</B>";
+            pr.setSnipped(getSnippet(document, lemmaList));
+            //pr.setSnipped(s);
+
             pr.setRelevance(absRel);
             pr.setSite( pageEntity.getSiteId().getUrl() );
             pr.setSiteName( pageEntity.getSiteId().getName() );
@@ -135,6 +163,8 @@ public class Search {
         return pageRelList;
     }
 
+
+
     //вставить объект pageRelevance в сортированный список согласно релевантности
     private void insertPageRelevance(List<PageOnRequest> list, PageOnRequest pr){
         if (list.isEmpty()){ list.add(pr); return; }
@@ -149,32 +179,83 @@ public class Search {
         list.add(posForInsert,pr);
     }
 
-    //получить сниппеты по странице
-    private List<String> getSnippet(String html, List<String> lemma){
-        //Document document = Jsoup.parse(html);
-        //Elements elements = document.select()
-        /*todo тут пройти по document. Сперва проанализировать теги title, h1, h2, потом все остальные по порядку
-            проверять текст тегов на содержание нужных лемм
-
-         */
 
 
-        return null;
+    private String getSnippet(Document document, List<String> lemmaList){
+
+  //в этом варианте не выделяется тэгомпо умолчанию. И результат не распознается фронтом как html
+
+        SimpleHTMLFormatter formatter = new SimpleHTMLFormatter(); //нет выделения полчему то
+        //SimpleHTMLEncoder encoder = new SimpleHTMLEncoder();
+        String queryString = lemmaList.toString();
+        StandardAnalyzer standardAnalyzer = new StandardAnalyzer();
+        TokenStream tokenStream = standardAnalyzer.tokenStream("q", queryString);
+        TokenGroup tokenGroup = new TokenGroup(tokenStream);
+        return formatter.highlightTerm(document.toString(), tokenGroup);
+
+
+
+   //этот вариант заканчивается выдачей чего то непонятного
+/*
+        WeightedSpanTerm[] lemma = new WeightedSpanTerm[lemmaList.size()];
+        for (int i = 0; i < lemmaList.size(); i++) {
+            lemma[i] = new WeightedSpanTerm(1, lemmaList.get(i));
+        }
+        SimpleHTMLFormatter formatter = new SimpleHTMLFormatter();
+        SimpleHTMLEncoder encoder = new SimpleHTMLEncoder();
+        QueryScorer scorer = new QueryScorer(lemma);  //тут ошибка возникает
+        Highlighter highlighter = new Highlighter(formatter, encoder, scorer);
+        StandardAnalyzer standardAnalyzer = new StandardAnalyzer();
+        String html = document.html();
+        String stringQuery = lemmaList.toString();
+        TokenStream tokenStream = standardAnalyzer.tokenStream("field", stringQuery);
+        //TokenStream tokenStream = standardAnalyzer.tokenStream("field", "блогер советский");
+        try {
+            //String tmp = "коко шанель была блогер, как артемий, и советский шпиен ";
+            //return highlighter.getBestFragment(tokenStream, tmp);
+            return highlighter.getBestFragment(tokenStream, html);
+        }catch (IOException | InvalidTokenOffsetsException e){
+            return "-";
+        }
+*/
+
+
+    //этот вариант постоянно возвращает null
+ /*
+    List<BooleanClause> conditions = new ArrayList<>();
+    for (String item : lemmaList){
+        Term term = new Term(item);
+        TermQuery termQuery = new TermQuery(term);
+        BooleanClause booleanClause = new BooleanClause(termQuery, BooleanClause.Occur.MUST);
+        conditions.add(booleanClause);
     }
-
-    //поиск сниппета по элементу html
-    private String findLemmaFromQuery(List<String> list, String tagContent){
-        /*todo поиск нужных слов в тексте тега,
-          возвращает текст с выделением найденных слов <b></b>
-         */
+    BooleanQuery booleanQuery = new BooleanQuery.Builder().add(conditions).build();
 
 
 
-        return null;
+    QueryScorer queryScorer = new QueryScorer(booleanQuery);
+    Highlighter highlighter = new Highlighter(queryScorer);
+    StandardAnalyzer standardAnalyzer = new StandardAnalyzer();
+    String html = document.html();
+    String stringQuery = lemmaList.toString();
+    TokenStream tokenStream = standardAnalyzer.tokenStream("field", stringQuery);
+
+    try {
+        //tokenStream.reset();
+        return highlighter.getBestFragment(tokenStream, html);
+    }catch (IOException | InvalidTokenOffsetsException e ){
+        return "--error on find snipped";
     }
+*/
 
 
-    //пустой запрос, сайт не из списка или нет результатов
+}
+
+
+
+
+
+     //пустой запрос, сайт не из списка или нет результатов
     private SearchResult onNegativeResult(String msg){
         SearchResult searchResult = new SearchResult();
         searchResult.setResult(false);
