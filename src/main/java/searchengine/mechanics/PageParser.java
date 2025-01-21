@@ -1,5 +1,7 @@
 package searchengine.mechanics;
 
+import lombok.Data;
+import lombok.Getter;
 import lombok.SneakyThrows;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
@@ -7,6 +9,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import org.springframework.stereotype.Component;
 import searchengine.config.ConfigAppl;
 import searchengine.model.*;
 import searchengine.services.*;
@@ -19,6 +22,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveAction;
 
 public class PageParser extends RecursiveAction {//extends RecursiveAction
+    @Getter
     private final String pageUrl;
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
@@ -69,14 +73,36 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         this.config = config;
     }
 
+    //@SneakyThrows
+    //@Override
+//    public void compute(){
+//
+//    try {
+//        compute1();
+//    }catch (Exception e){
+//        System.out.println("Stop.");
+//    }
+//
+//    }
 
-    @SneakyThrows
+
     @Override
     public void compute(){
         PageEntity page = new PageEntity();
 
-        Thread.sleep(config.getTimeout());
-        Connection.Response siteResponse = getResponse();
+        try{
+            Thread.sleep(config.getTimeout());
+        }catch (InterruptedException e){
+            System.out.println("PageParser.compute()-interrupted");
+        }
+
+        Connection.Response siteResponse = null;
+        try {
+            siteResponse = getResponse();
+        } catch (IOException e) {
+            System.out.println("PageParser.compute() getResponse  " + e.getCause());
+            throw new RuntimeException(e);
+        }
 
         //если http код "не положительный"
         if (siteResponse.statusCode() >=400){
@@ -84,7 +110,12 @@ public PageParser(String pageUrl, ForkJoinPool pool,
             return;
         }
 
-        document = siteResponse.parse();
+        try {
+            document = siteResponse.parse();
+        } catch (IOException e) {
+            System.out.println("PageParser.compute() document = siteResponse.parse()  " + e.getCause());
+            throw new RuntimeException(e);
+        }
 
         //получить ссылки и проверить на уникальность
         Elements links = document.select("a");
@@ -105,7 +136,15 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         //сохранение сайта, страницы, вызов лемматизатора для анализа контента
         saveCurrentSite();
         page = saveCurrentPage(siteResponse.statusCode());
-        luceneGo(page);
+
+        try{
+            luceneGo(page);
+        }catch (Exception e){
+            System.out.println("pageParser.compute.luceneGo");
+//            System.out.println(e.getCause());
+//            System.out.println(e.getMessage());
+//            e.printStackTrace();
+        }
 
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
         if (deep < config.getDeepLimit() || config.getDeepLimit() == 0){
@@ -174,7 +213,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
     }
 
     //получить ответ от сйта в виде Connection.Response
-    @SneakyThrows
+    //@SneakyThrows
     private Connection.Response getResponse() throws IOException {
         return Jsoup.connect(pageUrl)
                 .ignoreHttpErrors(true)
@@ -265,7 +304,6 @@ public PageParser(String pageUrl, ForkJoinPool pool,
             saveIndex(lemma.getId(), item.getValue(), page.getId());
         }
     }
-
 
 
 

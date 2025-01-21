@@ -43,6 +43,12 @@ public class ApiController {
         }
         return result;
     }
+//    @GetMapping("/startIndexing")
+//    public String startIndexing() throws InterruptedException {
+//        int time = 10000;
+//        Thread.sleep(time);
+//        return "{'result':true}";
+//    }
 
 
     @GetMapping("/stopIndexing")

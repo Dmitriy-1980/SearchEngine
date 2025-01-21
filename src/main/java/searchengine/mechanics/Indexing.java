@@ -2,6 +2,7 @@ package searchengine.mechanics;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ public class Indexing {
     private final LuceneService luceneService;
 
     private final ForkJoinPool pool = new ForkJoinPool();//(Runtime.getRuntime().availableProcessors());
+    @Setter
     private Boolean isRunning = false;
     //список url-сайта , список задач по нему
     private final ConcurrentHashMap<String, List<RecursiveAction>> taskList = new ConcurrentHashMap<>();
@@ -46,12 +48,18 @@ public class Indexing {
         for (Site site : configAppl.getSites()){
             goIndex(site);//запуск индексации очередного сайта
         }
-        waitOfIndexingEnd();//ожидание окончания индексации
-        System.out.println("Индексация закончена " + LocalDateTime.now() + " - " +
-                (System.currentTimeMillis() - start));
-        isRunning = false;
+
+        //todo часть ниже нужно вынести в отдельный поток- ожидание окончания
+        WaitOfIndexEnd waitOfIndexEnd = new WaitOfIndexEnd(this);
+        pool.submit(waitOfIndexEnd);
+
+        //waitOfIndexingEnd();//ожидание окончания индексации
+        //System.out.println("Индексация закончена " + LocalDateTime.now() + " - " +
+        //        (System.currentTimeMillis() - start));
+        //isRunning = false;
         return true;
     }
+
 
     //запуск индексации дополнительного сайта
     public boolean startAdditionalIndexing(String url){
@@ -73,6 +81,7 @@ public class Indexing {
         return true;
     }
 
+
     //индексация одного сайта изсписка
     private void goIndex(Site site){
         Vector<String> linksSet = new Vector<>(); //уникальный список ссылок со всего сайта
@@ -87,13 +96,15 @@ public class Indexing {
         pool.submit(pageParser);
     }
 
+
     //ожидание окончания индексации (в случае единственного пула)
     //И проверка статуса. Завершенные с ошибкой отметиться в записи site могут не успеть
-    private void waitOfIndexingEnd(){
+    public void waitOfIndexingEnd(){
 
         try {
             Thread.sleep(1000);
-        }catch (Exception e){
+        }catch (InterruptedException e){
+            System.out.println("Indexing.waitOfIndexingEnd  " + e.getMessage());
             stop();
         }
 
@@ -104,7 +115,7 @@ public class Indexing {
             siteStatus.put(key, IndexingStatus.INDEXING.toString());
         }
         //перебирать список задач до тех пор, пока он не опустеет
-        //Из-за сложностей с синхронизацией - обнаруженный опустевший список удаляется из карты полеочередного прохода по ней.
+        //Из-за сложностей с синхронизацией - обнаруженный опустевший список удаляется из карты после очередного прохода по ней.
         while (true){
             String keyForDeleteWhenListIsEmpty = "";
             for (Map.Entry<String, List<RecursiveAction>> item : taskList.entrySet()){
@@ -135,6 +146,7 @@ public class Indexing {
         }
     }
 
+
     //удаление отработавших задач. Вернуть true если есть прерванные.
     private boolean findCompletedTaskWithExc(List<RecursiveAction> list){
         boolean result = false;
@@ -145,12 +157,17 @@ public class Indexing {
                 if (ra.isDone()) {
                     if (ra.isCompletedAbnormally()) {
                         result = true;
+                        PageParser pp = (PageParser) ra;
+                        String cause = "-";
+                        if (ra.isCancelled()){cause="canceled";}
+                        else{cause="excepted";}
+                        System.out.println("Indexing.findCompletedTaskWithExc() " + pp.getPageUrl() + " cause:" + cause);
                     }
                     iterator.remove();
                 }
             }
         }
-        System.out.println("Indexing.findCompletedTaskWithExc");
+        //System.out.println("Indexing.findCompletedTaskWithExc");
         return result;
     }
 
@@ -171,6 +188,7 @@ public class Indexing {
 
     }
 
+
     //установить статус всем сайтам
     private void setAllSiteStatus(String status){
         for (Site item : configAppl.getSites()){
@@ -181,6 +199,7 @@ public class Indexing {
         }
     }
 
+
     //удалить все данные из БД
     private void clearDB(){
         pageService.clear();//page имеет в поле site - ее надо первой грохать
@@ -188,6 +207,7 @@ public class Indexing {
         lemmaService.clear();
         indexService.clear();
     }
+
 
     //удалить все данные указанного сайта
     private void clearSiteData(String siteUrl){
@@ -199,6 +219,7 @@ public class Indexing {
             siteService.delById(siteId);
         }
     }
+
 
     //проверка идет ли уже синхронизация
     private synchronized boolean  notMayStart(){

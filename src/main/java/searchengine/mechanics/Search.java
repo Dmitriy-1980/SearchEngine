@@ -231,8 +231,6 @@ public class Search {
     }
     BooleanQuery booleanQuery = new BooleanQuery.Builder().add(conditions).build();
 
-
-
     QueryScorer queryScorer = new QueryScorer(booleanQuery);
     Highlighter highlighter = new Highlighter(queryScorer);
     StandardAnalyzer standardAnalyzer = new StandardAnalyzer();

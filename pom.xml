@@ -145,6 +145,16 @@
             <version>10.1.0</version>
         </dependency>
 
+        <!-- логгирование -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+        <!--логгирование с применением AOP-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
 
         <!--  -->
     </dependencies>

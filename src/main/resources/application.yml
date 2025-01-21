@@ -11,12 +11,12 @@ indexing-settings:
   timeout: 1000 #таймаут между обращениями к сайт
   readSubDomain: false #обрабатывать ли поддомены //ЭТО ВООБЩЕ НЕЛЬЗЯ, НЕ УКЛАДЫВАЕТСЯ В ЗАДВНИЕ, поэтому пофиксить и убрать этот переключатель нафиг
   sites:
-    - url: https://www.lenta.ru
-      name: Лента.ру
+#    - url: https://www.lenta.ru
+#      name: Лента.ру
     - url: https://www.skillbox.ru
       name: Skillbox
-    - url: https://www.playback.ru
-      name: PlayBack.Ru
+#    - url: https://www.playback.ru
+#      name: PlayBack.Ru
 #    - url: https://mail.ru/
 #      name: mailRu
   redissonHost: redis://127.0.0.1:6379 #расположение сервера Redis
