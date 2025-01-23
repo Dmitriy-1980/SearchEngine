@@ -1,15 +1,14 @@
 package searchengine.mechanics;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.SneakyThrows;
+import lombok.Synchronized;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import org.springframework.stereotype.Component;
 import searchengine.config.ConfigAppl;
 import searchengine.model.*;
 import searchengine.services.*;
@@ -40,6 +39,7 @@ public class PageParser extends RecursiveAction {//extends RecursiveAction
     private final IndexService indexService;
     private final LuceneService luceneService;
 
+    private final MyLog log = new MyLog();
 /*В конструкторпередаются сервисы, конфиг приложения, пулл потоков - всегда одинаково.
 * deep-глубина вложенности обрабатываемой ссылки. Если deep==0 то это главная страница.
 * linkSet и siteLemmaMap коллекции ссылок и лемм одного сайта.Они сквозные для всего сайта
@@ -73,19 +73,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         this.config = config;
     }
 
-    //@SneakyThrows
-    //@Override
-//    public void compute(){
-//
-//    try {
-//        compute1();
-//    }catch (Exception e){
-//        System.out.println("Stop.");
-//    }
-//
-//    }
-
-
+    @SneakyThrows
     @Override
     public void compute(){
         PageEntity page = new PageEntity();
@@ -93,16 +81,12 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         try{
             Thread.sleep(config.getTimeout());
         }catch (InterruptedException e){
-            System.out.println("PageParser.compute()-interrupted");
+            //System.out.println("PageParser.compute()-interrupted");
+            log.parsLog("Interrupted.. ", "error");
         }
 
         Connection.Response siteResponse = null;
-        try {
-            siteResponse = getResponse();
-        } catch (IOException e) {
-            System.out.println("PageParser.compute() getResponse  " + e.getCause());
-            throw new RuntimeException(e);
-        }
+        siteResponse = getResponse();
 
         //если http код "не положительный"
         if (siteResponse.statusCode() >=400){
@@ -113,8 +97,9 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         try {
             document = siteResponse.parse();
         } catch (IOException e) {
-            System.out.println("PageParser.compute() document = siteResponse.parse()  " + e.getCause());
-            throw new RuntimeException(e);
+            //System.out.println("PageParser.compute() document = siteResponse.parse()  " + e.getCause());
+            String msg = "siteResponse.parse()  " + e.getCause();
+            //throw new RuntimeException(e);
         }
 
         //получить ссылки и проверить на уникальность
@@ -140,10 +125,8 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         try{
             luceneGo(page);
         }catch (Exception e){
-            System.out.println("pageParser.compute.luceneGo");
-//            System.out.println(e.getCause());
-//            System.out.println(e.getMessage());
-//            e.printStackTrace();
+            //System.out.println("pageParser.compute.luceneGo");
+            log.parsLog("luceneGo unknown error. | " + e.getMessage() , "error");
         }
 
         //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
@@ -214,13 +197,19 @@ public PageParser(String pageUrl, ForkJoinPool pool,
 
     //получить ответ от сйта в виде Connection.Response
     //@SneakyThrows
-    private Connection.Response getResponse() throws IOException {
-        return Jsoup.connect(pageUrl)
-                .ignoreHttpErrors(true)
-                .userAgent(config.getUserAgent())
-                .referrer(config.getReferer())
-                .timeout(config.getResponseWait())
-                .execute();
+    private Connection.Response getResponse(){
+        try{
+            return Jsoup.connect(pageUrl)
+                    .ignoreHttpErrors(true)
+                    .userAgent(config.getUserAgent())
+                    .referrer(config.getReferer())
+                    .timeout(config.getResponseWait())
+                    .execute();
+        }catch (Exception ex){
+            String msg = "getResponse " + pageUrl + ". " + ex.getCause();
+            log.parsLog(msg, "error");
+            return null;
+        }
     }
 
     //*сохранение в БД при ошибках или положительных событиях:*/
@@ -231,6 +220,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         site.setStatus(IndexingStatus.FAILED.toString());
         site.setLastError(msg);
         siteService.saveSite(site);
+        log.parsLog(msg, "warn");
     }
 
     //сохранение текущего сайта при отсутствии ошибок
@@ -254,12 +244,14 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         if (deep == 1){ page.setPath("/"); }
         else { page.setPath(getLocalUrl(pageUrl)); }
         page.setContent(document.toString());
+        //page.setContent(Thread.currentThread().getName());
         page.setSiteId(site);
         try {
             saveCurrentSite();//обновление времени
             return pageService.savePage(page);
         }catch (Exception e){
-            System.out.println(">>> ош.сохр.стр. " + pageUrl);
+            //System.out.println(">>> ош.сохр.стр. " + pageUrl);
+            log.parsLog("savePage error : " + pageUrl, "error");
         }
         return null;
     }
@@ -288,21 +280,38 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         LemmaEntity lemma = new LemmaEntity();
         lemma.setSiteId( site.getId() );
 
-        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(document.text());
+        HashMap<String,Integer> pageLemmaMap = luceneService.getLemmaMap(document.text());//карта лемм и кол по одной странице
+        Iterator<Map.Entry<String, Integer>> iterator = pageLemmaMap.entrySet().iterator();
 
-        for (Map.Entry<String, Integer> item : pageLemmaMap.entrySet()){
-            if (siteLemmaMap.containsKey(item.getKey())) {
-                //обновить лемм. кол.из siteLemmaMap+кол.из pageLemmaMap.  И индекс.
-                int lemmaCount = siteLemmaMap.get(item.getKey());
-                lemma = lemmaService.update(site.getId(), item.getKey(), lemmaCount + 1); //count+1
-                siteLemmaMap.put(item.getKey(), lemmaCount + 1); //item.getValue()
-            } else {
-                //создать лемму по данным из pageLemmaMap. И индекс.
-                lemma = saveLemma(item.getKey(), 1);
-                siteLemmaMap.put(item.getKey(), item.getValue());
+        while (iterator.hasNext()){
+            boolean isNewLemma = false;//флаг -содержит карта(и бд) лемму или нет
+            Map.Entry<String, Integer> item = iterator.next();
+            //синхро-блок проверки на новизну леммы. Блок минимизирован.
+            synchronized (siteLemmaMap) {
+                if (!siteLemmaMap.containsKey(item.getKey())) {
+                    siteLemmaMap.put(item.getKey(), 1 );
+                    isNewLemma = true;
+                }
             }
+
+            if (isNewLemma)
+            {
+                lemma = saveLemma(item.getKey(), 1);
+            }
+            else
+            {   //синхро-блок увеличения кол страниц с даной леммой
+                synchronized (siteLemmaMap){
+                    int currentCount = siteLemmaMap.get(item.getKey());
+                    siteLemmaMap.put(item.getKey(), currentCount + 1);
+                }
+                //и увеличим счетчик для данной леммы в БД
+                lemma = lemmaService.incrementFrequency(site.getId(), item.getKey());
+            }
+            //и сохранение индекса
             saveIndex(lemma.getId(), item.getValue(), page.getId());
+
         }
+
     }
 
 

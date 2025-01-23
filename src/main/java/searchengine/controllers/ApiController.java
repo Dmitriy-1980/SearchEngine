@@ -9,6 +9,7 @@ import searchengine.config.Site;
 import searchengine.dto.CommandResult;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.mechanics.Indexing;
+import searchengine.mechanics.MyLog;
 import searchengine.mechanics.Search;
 import searchengine.services.*;
 
@@ -29,11 +30,12 @@ public class ApiController {
     private final LuceneService luceneService;
     private final ConfigAppl config;
     private final Search search;
-
+    private final MyLog log = new MyLog();
 
     //запуск полной индксации всех указанных в конфигурации сайтов
     @GetMapping("/startIndexing")
     public CommandResult startIndexing() {
+        log.traceLog("@GetMapping( /startIndexing )", "info");
         CommandResult result = new CommandResult();
         if (indexing.startFromList()) {
             result.setResult(true);
@@ -53,6 +55,7 @@ public class ApiController {
 
     @GetMapping("/stopIndexing")
     public CommandResult stopIndexing(){
+        log.traceLog("@GetMapping( /stopIndexing )", "info");
         CommandResult result = new CommandResult();
         if (indexing.stop()){
             result.setResult(true);
@@ -66,6 +69,7 @@ public class ApiController {
     //добавить сайт для индексации
     @PostMapping(value = "/indexPage")
     private CommandResult indexPage(@RequestParam("url") String url){
+        log.traceLog("@PostMapping( value = /indexPage )", "info");
         CommandResult result = new CommandResult();
         if (indexing.startAdditionalIndexing(url)){
             result.setResult(true);
@@ -79,6 +83,7 @@ public class ApiController {
 
     @GetMapping("/statistics")
     public ResponseEntity<?> statistics() {
+        log.traceLog("@GetMapping( /statistics )", "info");
         try{
             StatisticsResponse stat = statServ.getStatistics();
             ResponseEntity response = new ResponseEntity<>(stat, HttpStatus.OK);
@@ -94,7 +99,8 @@ public class ApiController {
     @GetMapping("/search")
     private ResponseEntity<?> search(@RequestParam(name = "query", defaultValue = "") String query,
                                      @RequestParam(name = "site", defaultValue = "") String siteUrl) {
-        System.out.println(query + "   " + siteUrl);
+        log.traceLog("@GetMapping( /search ) " + query + "   " + siteUrl, "info");
+        //System.out.println(query + "   " + siteUrl);
         try{
             return new ResponseEntity<>(search.search(query, siteUrl), HttpStatus.OK);
         }catch (IOException e){

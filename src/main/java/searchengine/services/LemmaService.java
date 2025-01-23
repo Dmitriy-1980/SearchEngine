@@ -24,6 +24,9 @@ public interface LemmaService {
     //обновление записи по самой лемме (тк леммы для разных сайтов могут пересекаться, то нужна привязка к сайту)
     LemmaEntity update(int siteId, String lemma, int count);
 
+    //увеличение frequency поля на 1
+    LemmaEntity incrementFrequency(int siteId, String lemma);
+
     //получить список лемм отсортированный по количеству страниц имеющих лемму
     List<String> getLemmaListSortedByPagesCount(List<String> lemmas);
 

@@ -14,6 +14,7 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.highlight.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -52,14 +53,14 @@ public class Search {
         if (!siteUrl.isEmpty() && !configAppl.isExistsUrl(siteUrl) )
         { return onNegativeResult("Заданый сайт не из списка индексации."); }
 
-        //получить список лемм отсортированный в порядке убывания кол страниц с ними
+        //получить список лемм отсортированный в порядке возрастания кол страниц с ними
         //отсеивая слишко мчасто встречающиеся (где кол > предельного ConfigAppl.maxFrequency )
         List<String> lemmaList = new ArrayList<>();
-        lemmaList = lemmaService.getLemmaListSortedByPagesCount( luceneService.getUniqLemmaList(query) );
+        lemmaList = lemmaService.getLemmaListSortedByPagesCount(luceneService.getUniqLemmaList(query));
         if (lemmaList.isEmpty())
             { return onNegativeResult("Заданные слова в месте не встречаются.");} //нет лемм => нет результата
 
-        //получить список id подходящихстраниц
+        //получить список id подходящих страниц
         List<Integer> listPageId = getSuitablePageIdList(query, siteUrl, lemmaList);
         if (listPageId.isEmpty())
         { return onNegativeResult("Заданные слова в месте не встречаются."); }
@@ -83,21 +84,8 @@ public class Search {
     //Отфильтровать их в зависимости от того указан ли конкретный сайт или нет.
     //Фильтровать их далее добавляя к условиям поочередно леммы.
     private List<Integer> getSuitablePageIdList(String query, String siteUrl, List<String> lemmaList) throws IOException{
-
-        //List<String> lemmaList = new ArrayList<>();
         List<Integer> listPageId = new ArrayList<>();//список id страниц с заданными леммами
-        //List<Integer> listLemmaId = new ArrayList<>();
-        //List<IndexEntity> indexList = new ArrayList<>();//список походящих индекстов
-
         String sqlQuery, sqlSubQuery, sqlSubSubQuery;
-
-
-        //получить список лемм отсортированный в порядке убывания кол страниц с ними
-        //отсеивая слишко мчасто встречающиеся (где кол > предельного ConfigAppl.maxFrequency )
-        //lemmaList = lemmaService.getLemmaListSortedByPagesCount( luceneService.getUniqLemmaList(query) );
-
-        //if (lemmaList.isEmpty()) { return Collections.emptyList();} //нет лемм => нет результата
-
 
         //получить список page_id для самой редкой леммы
         listPageId = indexService.getPageIdListByLemma( lemmaList.get(0) );
@@ -182,75 +170,69 @@ public class Search {
 
 
     private String getSnippet(Document document, List<String> lemmaList){
-
-  //в этом варианте не выделяется тэгомпо умолчанию. И результат не распознается фронтом как html
-
-        SimpleHTMLFormatter formatter = new SimpleHTMLFormatter(); //нет выделения полчему то
-        //SimpleHTMLEncoder encoder = new SimpleHTMLEncoder();
-        String queryString = lemmaList.toString();
-        StandardAnalyzer standardAnalyzer = new StandardAnalyzer();
-        TokenStream tokenStream = standardAnalyzer.tokenStream("q", queryString);
-        TokenGroup tokenGroup = new TokenGroup(tokenStream);
-        return formatter.highlightTerm(document.toString(), tokenGroup);
-
-
-
-   //этот вариант заканчивается выдачей чего то непонятного
-/*
-        WeightedSpanTerm[] lemma = new WeightedSpanTerm[lemmaList.size()];
-        for (int i = 0; i < lemmaList.size(); i++) {
-            lemma[i] = new WeightedSpanTerm(1, lemmaList.get(i));
+        List<String> tagsName = new ArrayList<>(List.of("title","h1","h2","h3","p","span",":not(title,h1,h2,h3,p,span)"));
+        Snippet snippet = new Snippet("",0);
+        int wordsInQuery = lemmaList.size();
+        //перебор тегов и поиск в них нужных слов
+        for (String tagName : tagsName){
+            boolean breakFlag = false;
+            for (Element tag : document.body().select(tagName)){
+                Snippet newSnippet = getSnippetOnTag(tag.text(), lemmaList );
+                if (newSnippet.wordCount==wordsInQuery){
+                    snippet.setText(newSnippet.getText());
+                    snippet.setWordCount(newSnippet.getWordCount());
+                    breakFlag = true;
+                    break;
+                }
+                if (newSnippet.wordCount>snippet.wordCount){
+                    snippet.setText(newSnippet.getText());
+                    snippet.setWordCount(newSnippet.getWordCount());
+                }
+            }
+            if (breakFlag) {break;}
         }
-        SimpleHTMLFormatter formatter = new SimpleHTMLFormatter();
-        SimpleHTMLEncoder encoder = new SimpleHTMLEncoder();
-        QueryScorer scorer = new QueryScorer(lemma);  //тут ошибка возникает
-        Highlighter highlighter = new Highlighter(formatter, encoder, scorer);
-        StandardAnalyzer standardAnalyzer = new StandardAnalyzer();
-        String html = document.html();
-        String stringQuery = lemmaList.toString();
-        TokenStream tokenStream = standardAnalyzer.tokenStream("field", stringQuery);
-        //TokenStream tokenStream = standardAnalyzer.tokenStream("field", "блогер советский");
-        try {
-            //String tmp = "коко шанель была блогер, как артемий, и советский шпиен ";
-            //return highlighter.getBestFragment(tokenStream, tmp);
-            return highlighter.getBestFragment(tokenStream, html);
-        }catch (IOException | InvalidTokenOffsetsException e){
-            return "-";
-        }
-*/
-
-
-    //этот вариант постоянно возвращает null
- /*
-    List<BooleanClause> conditions = new ArrayList<>();
-    for (String item : lemmaList){
-        Term term = new Term(item);
-        TermQuery termQuery = new TermQuery(term);
-        BooleanClause booleanClause = new BooleanClause(termQuery, BooleanClause.Occur.MUST);
-        conditions.add(booleanClause);
-    }
-    BooleanQuery booleanQuery = new BooleanQuery.Builder().add(conditions).build();
-
-    QueryScorer queryScorer = new QueryScorer(booleanQuery);
-    Highlighter highlighter = new Highlighter(queryScorer);
-    StandardAnalyzer standardAnalyzer = new StandardAnalyzer();
-    String html = document.html();
-    String stringQuery = lemmaList.toString();
-    TokenStream tokenStream = standardAnalyzer.tokenStream("field", stringQuery);
-
-    try {
-        //tokenStream.reset();
-        return highlighter.getBestFragment(tokenStream, html);
-    }catch (IOException | InvalidTokenOffsetsException e ){
-        return "--error on find snipped";
-    }
-*/
-
-
+        return snippet.text;
 }
 
+    //поиск слов в элементе (тэге html)
+    private Snippet getSnippetOnTag(String text, List<String> lemmaList){
+        int count =0;
+        String textLow = text.toLowerCase();
+        for (String word : lemmaList){
+            if (textLow.contains(word)){
+                count++;
+                text = markWord(text, word);
+            }
+        }
+        return new Snippet(text, count);
+    }
 
+    //выделение слов в тексте (без учера регистра)
+    private String markWord(String text, String word){
+        String startMark = "<b>";
+        String stopMark = "</b>";
+        String repWord = startMark+word+stopMark;
+        int lenStart = startMark.length();
+        int lenWord = word.length();
+        StringBuilder sb = new StringBuilder(text);
+        StringBuilder sbLow = new StringBuilder(text.toLowerCase());
+        int pos =0;
+        int start = 0;
 
+        while (true){
+            pos = sbLow.indexOf(word, start);
+            if (pos == -1) {break;}
+            sb.insert(pos,startMark);
+            sb.insert(pos+lenStart+lenWord, stopMark);
+
+            sbLow.insert(pos,startMark);
+            sbLow.insert(pos+lenStart+lenWord, stopMark);
+
+            start = start + pos + repWord.length();
+        }
+
+        return sb.toString();
+    }
 
 
      //пустой запрос, сайт не из списка или нет результатов

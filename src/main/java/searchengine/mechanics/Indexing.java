@@ -29,6 +29,7 @@ public class Indexing {
     private final LemmaService lemmaService;
     private final IndexService indexService;
     private final LuceneService luceneService;
+    private final MyLog log = new MyLog();
 
     private final ForkJoinPool pool = new ForkJoinPool();//(Runtime.getRuntime().availableProcessors());
     @Setter
@@ -38,6 +39,7 @@ public class Indexing {
 
     //запустить индексацию по списку из конфигурации в application.yml
     public boolean startFromList(){
+        log.indLog("#### before startFromList ", "info");
         clearDB();//зачистить БД
         long start = System.currentTimeMillis();
         if (notMayStart()){
@@ -50,7 +52,7 @@ public class Indexing {
         }
 
         //todo часть ниже нужно вынести в отдельный поток- ожидание окончания
-        WaitOfIndexEnd waitOfIndexEnd = new WaitOfIndexEnd(this);
+        WaitOfIndexEnd waitOfIndexEnd = new WaitOfIndexEnd(this, start);
         pool.submit(waitOfIndexEnd);
 
         //waitOfIndexingEnd();//ожидание окончания индексации
@@ -63,6 +65,7 @@ public class Indexing {
 
     //запуск индексации дополнительного сайта
     public boolean startAdditionalIndexing(String url){
+        log.indLog("before StartAdditionalIndexing", "info");
         long start = System.currentTimeMillis();
         if (notMayStart()){
             return false;
@@ -73,17 +76,22 @@ public class Indexing {
 
         clearSiteData(url);
         goIndex(site);
-        waitOfIndexingEnd();
 
-        System.out.println("Индексация закончена " + LocalDateTime.now() + " - " +
-                (System.currentTimeMillis() - start));
-        isRunning = false;
+        //todo часть ниже нужно вынести в отдельный поток- ожидание окончания
+        WaitOfIndexEnd waitOfIndexEnd = new WaitOfIndexEnd(this, start);
+        pool.submit(waitOfIndexEnd);
+//        waitOfIndexingEnd();
+//
+//        System.out.println("Индексация закончена " + LocalDateTime.now() + " - " +
+//                (System.currentTimeMillis() - start));
+//        isRunning = false;
         return true;
     }
 
 
     //индексация одного сайта изсписка
     private void goIndex(Site site){
+        log.indLog("before goIndex", "info");
         Vector<String> linksSet = new Vector<>(); //уникальный список ссылок со всего сайта
         ConcurrentHashMap<String,Integer> siteLemmaMap = new ConcurrentHashMap<>(); //уникальный список лемм с кол их вхождений для всего сайта
         site.setUrl( site.getUrl() );
@@ -100,11 +108,12 @@ public class Indexing {
     //ожидание окончания индексации (в случае единственного пула)
     //И проверка статуса. Завершенные с ошибкой отметиться в записи site могут не успеть
     public void waitOfIndexingEnd(){
-
+        log.indLog("waitOfIndexingEnd", "info");
         try {
             Thread.sleep(1000);
         }catch (InterruptedException e){
-            System.out.println("Indexing.waitOfIndexingEnd  " + e.getMessage());
+            //System.out.println("Indexing.waitOfIndexingEnd  " + e.getMessage());
+            log.indLog("Interrupted.. " + e.getMessage(), "error");
             stop();
         }
 
@@ -161,13 +170,14 @@ public class Indexing {
                         String cause = "-";
                         if (ra.isCancelled()){cause="canceled";}
                         else{cause="excepted";}
-                        System.out.println("Indexing.findCompletedTaskWithExc() " + pp.getPageUrl() + " cause:" + cause);
+                        String msg = "uncompleted task: " + pp.getPageUrl() + " cause:" + cause;
+                        log.indLog(msg, "error");
+
                     }
                     iterator.remove();
                 }
             }
         }
-        //System.out.println("Indexing.findCompletedTaskWithExc");
         return result;
     }
 
@@ -175,6 +185,7 @@ public class Indexing {
     //остановить индексацию
     public boolean stop(){
         if (!isRunning){
+            log.indLog("stop indexing impossible", "info");
             return false;
         }
         isRunning = false;
@@ -182,6 +193,7 @@ public class Indexing {
         pool.shutdown();
         while (true){
             if (pool.isShutdown()){
+                log.indLog("indexing was stopped", "info");
                 return true;
             }
         }
@@ -202,6 +214,7 @@ public class Indexing {
 
     //удалить все данные из БД
     private void clearDB(){
+        log.indLog("before clear DB", "info");
         pageService.clear();//page имеет в поле site - ее надо первой грохать
         siteService.clear();
         lemmaService.clear();
@@ -211,6 +224,7 @@ public class Indexing {
 
     //удалить все данные указанного сайта
     private void clearSiteData(String siteUrl){
+        log.indLog("before clearSiteData - " + siteUrl, "info");
         if (siteService.existUrl(siteUrl)){
             int siteId = siteService.findByUrl(siteUrl).getId();
             indexService.delAllBySiteUrl(siteUrl);

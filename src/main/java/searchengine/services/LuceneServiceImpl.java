@@ -56,7 +56,7 @@ public class LuceneServiceImpl implements LuceneService {
         for (String word : list){
             if (particlesFilter(word)) { continue; }
             if (!rezList.contains(word)){
-                rezList.add(word);
+                rezList.add(luceneMorphology.getNormalForms(word).get(0));
             }
         }
         return rezList;

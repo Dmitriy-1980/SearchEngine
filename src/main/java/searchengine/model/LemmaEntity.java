@@ -22,7 +22,7 @@ public class LemmaEntity {
     String lemma;
 
     @Column(name = "frequency")
-    float frequency;
+    int frequency;
 
 
 }
