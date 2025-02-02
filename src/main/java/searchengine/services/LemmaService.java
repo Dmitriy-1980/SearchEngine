@@ -2,6 +2,7 @@ package searchengine.services;
 
 import searchengine.model.LemmaEntity;
 
+import java.util.HashMap;
 import java.util.List;
 
 public interface LemmaService {
@@ -21,11 +22,10 @@ public interface LemmaService {
     //удалить все
     void clear();
 
-    //обновление записи по самой лемме (тк леммы для разных сайтов могут пересекаться, то нужна привязка к сайту)
-    LemmaEntity update(int siteId, String lemma, int count);
 
-    //увеличение frequency поля на 1
-    LemmaEntity incrementFrequency(int siteId, String lemma);
+    //изменение frequency на заданную величину.
+    LemmaEntity changeFrequency(int lemmaId, int addValue);
+
 
     //получить список лемм отсортированный по количеству страниц имеющих лемму
     List<String> getLemmaListSortedByPagesCount(List<String> lemmas);
@@ -33,6 +33,9 @@ public interface LemmaService {
     //получить список id по лемме (одно слово может несколько раз быть- на разных страницах)
     List<Integer> getListIdByLemma(String word);
 
-//    //получить сумму rank всех лемм по списку
-//    Float getSummaryRank(List<Integer> lemmaIdList);
+    //получить лемму по siteId и lemma
+    LemmaEntity getBySiteIdAndLemma(int siteId, String lemma);
+
+    //получить все леммы сайта по его id
+    List<LemmaEntity> getAllLemmasBySiteId(int siteId);
 }

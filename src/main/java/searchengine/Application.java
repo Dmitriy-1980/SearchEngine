@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
+import searchengine.mechanics.MyLog;
 import searchengine.mechanics.PageParser;
 
 @SpringBootApplication
@@ -14,10 +15,11 @@ import searchengine.mechanics.PageParser;
 @RequiredArgsConstructor
 //@ConfigurationProperties(prefix = "indexing-settings")
 public class Application {
-
+    private static final MyLog log = new MyLog();
 
     public static void main(String[] args) {
         ApplicationContext context = SpringApplication.run(Application.class, args);
-        System.out.println("Application.main.lastPoint");
+        System.out.println("Приложение запущено");
+        log.traceLog("Приложение запущено.", "info");
     }
 }

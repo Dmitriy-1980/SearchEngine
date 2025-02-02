@@ -14,9 +14,13 @@ import searchengine.mechanics.MyLog;
 import searchengine.model.LemmaEntity;
 import searchengine.model.QLemmaEntity;
 import searchengine.model.QSiteEntity;
+import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 
 import static searchengine.model.QLemmaEntity.lemmaEntity;
 
@@ -40,20 +44,13 @@ public class LemmaServiceImpl implements LemmaService{
     //удалить все леммы по url сайта
     @Override
     public void delAllBySiteUrl(String siteUrl){
-        //lemmaRep.delAllBySiteUrl(siteUrl);
-        QLemmaEntity qLemma = lemmaEntity;
-        QSiteEntity qSite = QSiteEntity.siteEntity;
-        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-        int siteId = jqf.select(qSite.id).from(qSite).where(qSite.url.eq(siteUrl)).fetchOne();
-        jqf.delete(qLemma).where(qLemma.siteId.eq(siteId));
+        int siteId = siteService.findByUrl(siteUrl).getId();
+        lemmaRep.deleteAllBySiteId(siteId);
     }
 
     //кол лемм по указанному id сайта
     public int getCountBySiteId(int id){
-        //return lemmaRep.getCountBySiteId(id);
-        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-        QLemmaEntity qLemma = lemmaEntity;
-        return  (int) jqf.selectFrom(qLemma).where(qLemma.siteId.eq(id)).stream().count();
+        return lemmaRep.countBySiteId(id);
     }
 
     //кол записей
@@ -68,53 +65,27 @@ public class LemmaServiceImpl implements LemmaService{
     }
 
 
-    //обновление записи по самой лемме (тк леммы для разных сайтов могут пересекаться, то нужна привязка к сайту)
+    //обновление frequancy в лемме (тк леммы для разных сайтов могут пересекаться, то нужна привязка к сайту)
     @Override
-    public LemmaEntity update(int siteId, String lemma, int count){
-        //List<LemmaEntity> list = lemmaRep.getEntityByLemma(lemma);
-        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-        QLemmaEntity qLemma = lemmaEntity;
-        try {
-            LemmaEntity lemmaEntity = jqf.selectFrom(qLemma)
-                    //.setLockMode(LockModeType.PESSIMISTIC_WRITE)//пессимистическая блокировка на чтение/изменение/запись
-                    .where(qLemma.lemma.eq(lemma))
-                    .where(qLemma.siteId.eq(siteId))
-                    .fetchOne();
-            lemmaEntity.setFrequency(count);
-            return lemmaRep.save(lemmaEntity);
-        }catch (Exception e){
-            log.parsLog(e.getCause().toString(), "error");
-            throw e;
+    public LemmaEntity changeFrequency(int lemmaId, int addValue){
+        Optional<LemmaEntity> lemmaOpt = lemmaRep.findById(lemmaId);
+        if (lemmaOpt.isEmpty()) {return null;}
+
+        LemmaEntity lemmaEntity = lemmaOpt.get();
+        int newCount = Math.max(lemmaEntity.getFrequency() + addValue , 0 );
+        lemmaEntity.setFrequency(newCount);
+        if (newCount == 0)
+        {
+            lemmaRep.delete(lemmaEntity);
         }
-    }
-
-    @Override
-    @Transactional
-    public LemmaEntity incrementFrequency(int siteId, String lemma){
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<LemmaEntity> cq = cb.createQuery(LemmaEntity.class);
-        Root<LemmaEntity> rootGet = cq.from(LemmaEntity.class);
-
-        //запрос на получение сущности
-        cq.select(rootGet)
-                .where(cb.equal(rootGet.get("siteId"),siteId))
-                .where(cb.equal(rootGet.get("lemma"),lemma));
-        LemmaEntity lemmaEntity = entityManager.createQuery(cq).getSingleResult();
-        int value = lemmaEntity.getFrequency() + 1;
-
-        CriteriaUpdate<LemmaEntity> cu = cb.createCriteriaUpdate(LemmaEntity.class);
-        Root<LemmaEntity> rootUpdt = cu.from(LemmaEntity.class);
-        //запрос на обновление
-        cu.set(rootUpdt.get("frequency"), value)
-                .where(cb.equal(rootUpdt.get("siteId"),siteId))
-                .where(cb.equal(rootUpdt.get("lemma"),lemma));
-        entityManager.createQuery(cu).executeUpdate();
-        //обновленная сущность
-        lemmaEntity = entityManager.createQuery(cq).getSingleResult();
-
+        else {
+            lemmaRep.save(lemmaEntity);
+        }
         return lemmaEntity;
-
     }
+
+
+
 
     //получить список лемм отсортированный по количеству страниц с каждой (частоте)
     //Сортировка в порядке возрастания их частоты
@@ -129,7 +100,6 @@ public class LemmaServiceImpl implements LemmaService{
             inList.value(word);
         }
         Expression<Long> count = cb.count(root.get("lemma"));
-        //Predicate byMaxCount = cb.gt(root.get("count"), configAppl.getMaxFrequency() ); вместо рпедиката по агрФункции (котне раб) нужно having !
         cq.select(root.get("lemma"))
                 .where(inList)
                 .groupBy(root.get("lemma"))
@@ -139,12 +109,23 @@ public class LemmaServiceImpl implements LemmaService{
     }
 
     //получить список id по лемме (одно слово может несколько раз быть- на разных страницах)
+    @Override
     public List<Integer> getListIdByLemma(String word){
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<Integer> cq = cb.createQuery(Integer.class);
-        Root<LemmaEntity> root = cq.from(LemmaEntity.class);
-        cq.select(root.get("id")).where(cb.equal(root.get("lemma"), word));
-        return entityManager.createQuery(cq).getResultList();
+        List<Integer> result = new ArrayList<>();
+        for (LemmaEntity lemmaEntity : lemmaRep.findAllByLemma(word)){
+            result.add(lemmaEntity.getId());
+        }
+        return result;
     }
 
+    //получить лемму по siteId и lemma
+    @Override
+    public LemmaEntity getBySiteIdAndLemma(int siteId, String lemma){
+        return lemmaRep.findBySiteIdAndLemma(siteId, lemma);
+    }
+
+    //получить все леммы сайта по его id
+    public List<LemmaEntity> getAllLemmasBySiteId(int siteId){
+        return lemmaRep.getBySiteId(siteId);
+    }
 }

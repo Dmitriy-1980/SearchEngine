@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
 import searchengine.model.IndexEntity;
 import searchengine.model.QSiteEntity;
+import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
 
 import java.util.List;
@@ -25,6 +26,7 @@ public class IndexServiceImpl implements IndexService{
     @PersistenceContext
     private final EntityManager entityManager;
     private final LemmaService lemmaService;
+    private final PageService pageService;
     private final SiteService siteService;
     private final ConfigAppl configAppl;
 
@@ -34,13 +36,20 @@ public class IndexServiceImpl implements IndexService{
         indexRep.save(indexEntity);
     }
 
-    //удалить всех по Url сайта
+    //удалить всех по id сайта
     @Override
-    public void delAllBySiteUrl(String siteUrl){
-        //indexRep.delAllBySiteUrl(siteUrl);
-        QSiteEntity qSite = QSiteEntity.siteEntity;
-        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-        jqf.delete(qSite).where(qSite.url.eq(siteUrl));
+    public void delAllBySite(SiteEntity site){
+        List<Integer> listPageId = pageService.getListIdBySite(site);
+        indexRep.deleteAllByPageIdIn(listPageId);
+//        //indexRep.delAllBySiteUrl(siteUrl);
+//        QSiteEntity qSite = QSiteEntity.siteEntity;
+//        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
+//        jqf.delete(qSite).where(qSite.url.eq(siteUrl));
+    }
+
+    //удаление индексов по page_id
+    public void delAllByPageId(int pageId){
+        indexRep.deleteAllByPageId(pageId);
     }
 
     //удалить все

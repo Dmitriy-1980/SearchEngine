@@ -9,23 +9,26 @@ import org.springframework.stereotype.Component;
 
 @NoArgsConstructor
 public class MyLog {
-    private final Logger indexingLogger = LoggerFactory.getLogger("indexingLogger");
     private final Logger parserLogger = LoggerFactory.getLogger("pageParserLogger");
-    private final Logger traceLogger = LoggerFactory.getLogger("traceLog");
+    private final Logger indexingLogger = LoggerFactory.getLogger("indexingLogger");
+    private final Logger searchLogger = LoggerFactory.getLogger("searchLogger");
+    private final Logger traceLogger = LoggerFactory.getLogger("traceLogger");
 
     private long indexingLogTime = System.currentTimeMillis();//время последнего сообщения
     private long parserLogTime = System.currentTimeMillis();
     private long traceLogTime = System.currentTimeMillis();
+    private long searchLogTime = System.currentTimeMillis();
 
-    private String timeAfterLastEvent(long lastTime, String message){
+    private String getMessage(long lastTime, String message){
        return
         "(pass_time(ms):"
-          + String.valueOf(System.currentTimeMillis()-lastTime)
-          + ") | " + message;
+          + (System.currentTimeMillis() - lastTime) + ") | "
+                + message;
     }
 
     public void indLog(String msg, String lvl){
-        msg = timeAfterLastEvent(indexingLogTime, msg);
+        msg = getMessage(indexingLogTime, msg);
+        indexingLogTime = System.currentTimeMillis();
         switch (lvl){
             case "trace" -> {indexingLogger.trace(msg); break;}
             case "debug" -> {indexingLogger.debug(msg); break;}
@@ -36,7 +39,8 @@ public class MyLog {
     }
 
     public void parsLog(String msg, String lvl){
-        msg = timeAfterLastEvent(parserLogTime, msg);
+        msg = getMessage(parserLogTime, msg);
+        parserLogTime = System.currentTimeMillis();
         switch (lvl){
             case "trace" -> {parserLogger.trace(msg); break;}
             case "debug" -> {parserLogger.debug(msg); break;}
@@ -47,13 +51,26 @@ public class MyLog {
     }
 
     public void traceLog(String msg, String lvl){
-        msg = timeAfterLastEvent(traceLogTime, msg);
+        msg = getMessage(traceLogTime, msg);
+        traceLogTime = System.currentTimeMillis();
         switch (lvl){
             case "trace" -> {traceLogger.trace(msg); break;}
             case "debug" -> {traceLogger.debug(msg); break;}
             case "info" -> {traceLogger.info(msg); break;}
             case "warn" -> {traceLogger.warn(msg); break;}
             case "error" -> {traceLogger.error(msg); break;}
+        }
+    }
+
+    public void searchLog(String msg, String lvl){
+        msg = getMessage(searchLogTime, msg);
+        searchLogTime = System.currentTimeMillis();
+        switch (lvl){
+            case "trace" -> {searchLogger.trace(msg); break;}
+            case "debug" -> {searchLogger.debug(msg); break;}
+            case "info" -> {searchLogger.info(msg); break;}
+            case "warn" -> {searchLogger.warn(msg); break;}
+            case "error" -> {searchLogger.error(msg); break;}
         }
     }
 

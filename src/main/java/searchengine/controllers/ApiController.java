@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import searchengine.config.ConfigAppl;
-import searchengine.config.Site;
 import searchengine.dto.CommandResult;
 import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.mechanics.Indexing;
@@ -14,7 +13,6 @@ import searchengine.mechanics.Search;
 import searchengine.services.*;
 
 import java.io.IOException;
-import java.io.Serializable;
 
 
 @RestController
@@ -36,49 +34,21 @@ public class ApiController {
     @GetMapping("/startIndexing")
     public CommandResult startIndexing() {
         log.traceLog("@GetMapping( /startIndexing )", "info");
-        CommandResult result = new CommandResult();
-        if (indexing.startFromList()) {
-            result.setResult(true);
-        } else {
-            result.setResult(false);
-            result.setError("Индексация уже запущена");
-        }
-        return result;
+        return indexing.startFromList();
     }
-//    @GetMapping("/startIndexing")
-//    public String startIndexing() throws InterruptedException {
-//        int time = 10000;
-//        Thread.sleep(time);
-//        return "{'result':true}";
-//    }
 
 
     @GetMapping("/stopIndexing")
     public CommandResult stopIndexing(){
         log.traceLog("@GetMapping( /stopIndexing )", "info");
-        CommandResult result = new CommandResult();
-        if (indexing.stop()){
-            result.setResult(true);
-        }else {
-            result.setResult(false);
-            result.setError("Индексация не запущена");
-        }
-        return result;
+        return indexing.stop();
     }
 
     //добавить сайт для индексации
     @PostMapping(value = "/indexPage")
     private CommandResult indexPage(@RequestParam("url") String url){
-        log.traceLog("@PostMapping( value = /indexPage )", "info");
-        CommandResult result = new CommandResult();
-        if (indexing.startAdditionalIndexing(url)){
-            result.setResult(true);
-        }
-        else {
-            result.setResult(false);
-            result.setError("Индексация уже запущена");
-        }
-        return result;
+        log.traceLog("ApiController.indexPage", "info");
+        return indexing.startAdditionalIndexing(url);
     }
 
     @GetMapping("/statistics")
@@ -98,15 +68,14 @@ public class ApiController {
 
     @GetMapping("/search")
     private ResponseEntity<?> search(@RequestParam(name = "query", defaultValue = "") String query,
-                                     @RequestParam(name = "site", defaultValue = "") String siteUrl) {
+                                     @RequestParam(name = "site", defaultValue = "") String siteUrl,
+                                     @RequestParam(name = "offset" , defaultValue = "0") int offset,
+                                     @RequestParam(name = "limit" , defaultValue = "20") int limit ) {
         log.traceLog("@GetMapping( /search ) " + query + "   " + siteUrl, "info");
-        //System.out.println(query + "   " + siteUrl);
         try{
-            return new ResponseEntity<>(search.search(query, siteUrl), HttpStatus.OK);
+            return new ResponseEntity<>(search.search(query, siteUrl, offset, limit), HttpStatus.OK);
         }catch (IOException e){
-            CommandResult commandResult = new CommandResult();
-            commandResult.setResult(false);
-            commandResult.setError("Непредвиденная ошибка.");
+            CommandResult commandResult = new CommandResult(false, "Непредвиденная ошибка.");
             return new ResponseEntity<>(commandResult, HttpStatus.valueOf(500));
         }
     }

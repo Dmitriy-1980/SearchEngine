@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+/**Класс возвращаемого объекта.
+ */
 @Data
 public class PageOnRequest {
     String uri;

@@ -10,11 +10,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
+import searchengine.mechanics.U;
 import searchengine.model.PageEntity;
 import searchengine.model.QPageEntity;
+import searchengine.model.SiteEntity;
 import searchengine.repositories.PageRepository;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +29,12 @@ public class PageServiceImpl implements PageService {
     private final EntityManager entityManager;
     private final ConfigAppl configAppl;
     private final SiteService siteService;
+
+    //наличие страницы по url
+    public boolean isExistUrl(String url){
+        return Optional.ofNullable(pageRep.getByPath(url)).isPresent();
+    }
+
 
     //кол страниц по заданному siteId сайта
     public int getCountBySiteId(int siteId){
@@ -44,12 +54,18 @@ public class PageServiceImpl implements PageService {
         return pageRep.save(page);
     }
 
-    //удалить все стриницы по ID сайта
+    //удалить все стриницы по сайту
     @Override
-    public void delAllBySiteId(int siteId) {
-       JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-       QPageEntity qPage = QPageEntity.pageEntity;
-       jqf.delete(qPage).where(qPage.siteId.id.eq(siteId));
+    public void delAllBySiteId(SiteEntity site) {
+        System.out.println("STOP STOP STOP  pageServiseImpl.delAllBySiteId");
+//       JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
+//       QPageEntity qPage = QPageEntity.pageEntity;
+//       jqf.delete(qPage).where(qPage.siteId.id.eq(site));
+    }
+
+    //удалить страницу по id
+    public void delById(int id){
+        pageRep.deleteById(id);
     }
 
     //удалить все
@@ -62,7 +78,7 @@ public class PageServiceImpl implements PageService {
     @Override
     public List<Integer> filterPageIdListBySite(List<Integer> pageIdList, String url){
         if (url == null || url.isEmpty()
-                || !configAppl.isExistsUrl(url)
+                || !U.isExistSite(url, configAppl.getSites())
                 || !siteService.existUrl(url)){
             return pageIdList;
         }
@@ -92,4 +108,36 @@ public class PageServiceImpl implements PageService {
 
         return entityManager.createQuery(cq).getSingleResult();
     }
+
+    //получить id по адресу страницы и id сайта
+    @Override
+    public int getIdByPathAndSite(String path, SiteEntity site){
+        return pageRep.getByPathAndSiteId(path, site).getId();
+//        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+//        CriteriaQuery<Integer> cq = cb.createQuery(Integer.class);
+//        Root<PageEntity> root = cq.from(PageEntity.class);
+//        cq.select(root.get("id")).where(cb.equal(root.get("path"), path)).where();
+//        return entityManager.createQuery(cq).getResultList();
+    }
+
+    //получить список id страниц по id-сайта
+    @Override
+    public List<Integer> getListIdBySite(SiteEntity site){
+        List<Integer> result = new ArrayList<>();
+        for (PageEntity item : pageRep.getAllBySiteId(site) ){
+            result.add(item.getId());
+        }
+        return result;
+    }
+
+    //получить все ссылки с сайта по его id
+    public List<String> getAllLinksBySiteId(SiteEntity site){
+        List<PageEntity> pageList = pageRep.getAllBySiteId(site);
+        List<String> linkList = new ArrayList<>();
+        for (PageEntity page : pageList){
+            linkList.add( site.getUrl() + page.getPath());
+        }
+        return linkList;
+    }
+
 }

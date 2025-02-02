@@ -1,17 +1,11 @@
 package searchengine.mechanics;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
 import java.util.concurrent.RecursiveAction;
 //класс-задача которая отслеживает завершение индексации
 
-//@Component
-//@RequiredArgsConstructor
+/**Простая задача. Нужна для "долгой жизни в параллеле".
+ * Ожиданеи связано с методом Indexing.waitOfIndexingEnd
+ * который постоянно прощупывает список запущенныхзадач.*/
 public class WaitOfIndexEnd extends RecursiveAction {
     private final Indexing indexing;
     private final long start;
@@ -24,8 +18,15 @@ public class WaitOfIndexEnd extends RecursiveAction {
 
     @Override
     protected void compute() {
-        indexing.waitOfIndexingEnd();
-        System.out.println("Индексация закончена ");
+        System.out.println("Индексация запускается. ");
+        try{ indexing.waitOfIndexingEnd();}
+            catch (Exception ex)
+            { log.indLog("WaitOfIndexEnd.compute(): Ошибка ожидателя окончания. : " + ex.getCause(), "error");
+              indexing.setIsRunning(false);
+            }
+        System.out.println("Индексация закончена. ");
+        log.indLog("WaitOfIndexEnd.compute(): индексация закончена.","info");
+
         indexing.setIsRunning(false);
         String msg = "Indexing completed. Duration(ms)=" + String.valueOf(System.currentTimeMillis() - start);
         log.indLog(msg, "info");

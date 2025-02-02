@@ -74,7 +74,7 @@ public class StatisticsServiceImpl implements StatisticsService {
         StatisticsData statisticsData = new StatisticsData();
         statisticsData.setTotal( getTotalStatistics() );
         List<DetailedStatisticsItem> listDetaled = new ArrayList<>();
-        config.checkDuplicate();
+        //config.checkDuplicate();
         for (Site site : config.getSites()){
             listDetaled.add( getDetailedStatisticsItem(site.getUrl()) );
         }

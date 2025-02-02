@@ -1,6 +1,7 @@
 package searchengine.mechanics;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.Synchronized;
 import org.jsoup.Connection;
@@ -14,6 +15,7 @@ import searchengine.model.*;
 import searchengine.services.*;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -23,6 +25,8 @@ import java.util.concurrent.RecursiveAction;
 public class PageParser extends RecursiveAction {//extends RecursiveAction
     @Getter
     private final String pageUrl;
+    @Setter
+    private boolean onlyThisPage = false; //флаг показывающи, что индексация только этой страницы
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
     private final Vector<String> linksSet; //лист ссылок всего сайта
@@ -44,7 +48,7 @@ public class PageParser extends RecursiveAction {//extends RecursiveAction
 * deep-глубина вложенности обрабатываемой ссылки. Если deep==0 то это главная страница.
 * linkSet и siteLemmaMap коллекции ссылок и лемм одного сайта.Они сквозные для всего сайта
 * и нужны для контроля на уникальность ссылок и подсчета лемм без обращения к SQL-серверу.
-* taskList- структурадля отслеживания состояния задач. Вполнена, остановлена, ошибка*/
+* taskList- структура для отслеживания состояния задач. Вполнена, остановлена, ошибка*/
 
 public PageParser(String pageUrl, ForkJoinPool pool,
                   Vector<String> linksSet, ConcurrentHashMap<String, Integer> siteLemmaMap,
@@ -66,7 +70,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         this.site = site;
         if (deep == 1){
             linksSet.add(pageUrl);
-            this.protocol = getProtocol(pageUrl);
+            this.protocol = U.getProtocol(pageUrl);
             this.site = new SiteEntity();
             this.site.setUrl(pageUrl);
         }
@@ -76,13 +80,15 @@ public PageParser(String pageUrl, ForkJoinPool pool,
     @SneakyThrows
     @Override
     public void compute(){
+    log.parsLog(MessageFormat.format("PageParser.compute(): url:{0}, deep:{1}, onlyThisPage:{2}, linksSet.size():{3}, siteLemmaMapSite():{4}",
+                 pageUrl,deep,onlyThisPage,linksSet.size(),siteLemmaMap.size()), "info");
+
         PageEntity page = new PageEntity();
 
         try{
             Thread.sleep(config.getTimeout());
         }catch (InterruptedException e){
-            //System.out.println("PageParser.compute()-interrupted");
-            log.parsLog("Interrupted.. ", "error");
+            log.parsLog("PageParser: Interrupted.. ", "error");
         }
 
         Connection.Response siteResponse = null;
@@ -97,9 +103,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         try {
             document = siteResponse.parse();
         } catch (IOException e) {
-            //System.out.println("PageParser.compute() document = siteResponse.parse()  " + e.getCause());
             String msg = "siteResponse.parse()  " + e.getCause();
-            //throw new RuntimeException(e);
         }
 
         //получить ссылки и проверить на уникальность
@@ -108,8 +112,8 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         for (Element item : links){
             if (item.attribute("href") == null) { continue; }
             String link = item.attribute("href").getValue();
-            String FullLink = getFullLink(link);
-            if (!isCorrectLink(link) || isSubdomain(FullLink)) { continue; }
+            if (!U.isCorrectLink(link) || !U.inThisSite(link,site.getUrl())) { continue; }
+            String FullLink = U.getFullUrl(link, site.getUrl(), protocol);
             //добавление уникальных ссылок в "сквозной список сайта" и локальный список страницы
             synchronized (linksSet) {
                 if (!linksSet.contains(FullLink)) {
@@ -125,16 +129,17 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         try{
             luceneGo(page);
         }catch (Exception e){
-            //System.out.println("pageParser.compute.luceneGo");
-            log.parsLog("luceneGo unknown error. | " + e.getMessage() , "error");
+            log.parsLog("PageParser.luceneGo(): неизвестн.ошибка. | " + e.getMessage() , "error");
         }
 
-        //если не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
-        if (deep < config.getDeepLimit() || config.getDeepLimit() == 0){
+        //если нет задачи индексировать только эту страницу,
+        // и не достигли "предельной глубины сканирования" то переходим по каждой ссылке и "читаем" очередную страницу.
+        if ( (!onlyThisPage) &&
+                (deep < config.getDeepLimit() || config.getDeepLimit() == 0) )
+        {
             for (String link : linkOnPage){
                 PageParser pageParser = new PageParser(link, pool, linksSet, siteLemmaMap, taskList,
                         siteService, pageService, luceneService, lemmaService , indexService, deep + 1, site, config);
-                //pool.submit(pageParser).fork(); //место роковой ошибки
                 taskList.get(site.getUrl()).add(pageParser);//задача добавлена по ключу-url сайта
                 pool.submit(pageParser);
             }
@@ -142,61 +147,15 @@ public PageParser(String pageUrl, ForkJoinPool pool,
     }
 
 
-    //получить протокол запроса
-    private String getProtocol(String url){
-        if (url.startsWith("https://")){
-            return  "https:";
-        } else if (url.startsWith("http://")) {
-            return  "http:";
-        } else {
-            return "<>";
-        }
+
+    /**Получить имя сайта из его кода.
+     * @param document структуированный код сайта.*/
+    private String getSiteName(Document document){
+        return document.select("title").get(0).text();
     }
 
-    //проверить ссылку на соответствие требуему виду (
-    private boolean isCorrectLink(String url){
-        if (url.startsWith("/") && url.length() > 1){ return true; }
-        if (url.startsWith("//") && url.length() > 5){ return true; }
-        if (url.startsWith("http://") && url.length() > 10){ return true; }
-        if (url.startsWith("https://") && url.length() > 11){ return true; }
-        return false;
-    }
-
-    //получить название сайта
-    private String getSiteName(Document site){
-        return site.select("title").get(0).text();
-    }
-
-    //получить локальный адрес страницы
-    private String getLocalUrl(String fullUrl){
-        //вытаскивает локальную ссылку из полной.
-        //В отсутствии поддоменов нужно т олько адрес сайта обрезать
-        return fullUrl.substring(site.getUrl().length());
-    }
-
-    //получить полную ссылку
-    private String getFullLink(String link){
-        if (link.startsWith("/")){ return site.getUrl() + link; }
-        if (link.startsWith("//")){ return protocol + link; }
-        return link;
-    }
-
-    //является ли поддоменом (домен- адрес сайта)
-    private boolean isSubdomain(String url){
-        if (config.isReadSubDomain()) {
-            return false;
-        }
-
-
-        if (url.startsWith(site.getUrl())){
-            return false;
-        } else {
-            return true;
-        }
-    }
 
     //получить ответ от сйта в виде Connection.Response
-    //@SneakyThrows
     private Connection.Response getResponse(){
         try{
             return Jsoup.connect(pageUrl)
@@ -206,8 +165,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
                     .timeout(config.getResponseWait())
                     .execute();
         }catch (Exception ex){
-            String msg = "getResponse " + pageUrl + ". " + ex.getCause();
-            log.parsLog(msg, "error");
+            log.parsLog("PageParser.getResponse("+pageUrl+")" + ex.getCause(), "error");
             return null;
         }
     }
@@ -220,7 +178,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         site.setStatus(IndexingStatus.FAILED.toString());
         site.setLastError(msg);
         siteService.saveSite(site);
-        log.parsLog(msg, "warn");
+        log.parsLog("http код: "+msg, "warn");
     }
 
     //сохранение текущего сайта при отсутствии ошибок
@@ -242,7 +200,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         PageEntity page = new PageEntity();
         page.setCode(code);
         if (deep == 1){ page.setPath("/"); }
-        else { page.setPath(getLocalUrl(pageUrl)); }
+        else { page.setPath(U.getLocalUrl(pageUrl, site.getUrl() ) ); }
         page.setContent(document.toString());
         //page.setContent(Thread.currentThread().getName());
         page.setSiteId(site);
@@ -251,15 +209,15 @@ public PageParser(String pageUrl, ForkJoinPool pool,
             return pageService.savePage(page);
         }catch (Exception e){
             //System.out.println(">>> ош.сохр.стр. " + pageUrl);
-            log.parsLog("savePage error : " + pageUrl, "error");
+            log.parsLog("PageParser.saveCurrentPage(): ошибка сохранения " + pageUrl, "error");
         }
         return null;
     }
 
     //сохранить (или обновить) лемму для текущего сайта
-    private LemmaEntity saveLemma(String lemma, int frequancy){
+    private LemmaEntity saveLemma(String lemma){
         LemmaEntity lemmaEntity = new LemmaEntity();
-        lemmaEntity.setFrequency(frequancy);
+        lemmaEntity.setFrequency(1);
         lemmaEntity.setLemma(lemma);
         lemmaEntity.setSiteId(site.getId());
         return lemmaService.saveLemma(lemmaEntity);
@@ -293,11 +251,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
                     isNewLemma = true;
                 }
             }
-
-            if (isNewLemma)
-            {
-                lemma = saveLemma(item.getKey(), 1);
-            }
+            if (isNewLemma) { lemma = saveLemma(item.getKey()); }
             else
             {   //синхро-блок увеличения кол страниц с даной леммой
                 synchronized (siteLemmaMap){
@@ -305,13 +259,12 @@ public PageParser(String pageUrl, ForkJoinPool pool,
                     siteLemmaMap.put(item.getKey(), currentCount + 1);
                 }
                 //и увеличим счетчик для данной леммы в БД
-                lemma = lemmaService.incrementFrequency(site.getId(), item.getKey());
+                lemma = lemmaService.getBySiteIdAndLemma(site.getId(), item.getKey());
+                lemma = lemmaService.changeFrequency(lemma.getId(), 1);
             }
             //и сохранение индекса
             saveIndex(lemma.getId(), item.getValue(), page.getId());
-
         }
-
     }
 
 

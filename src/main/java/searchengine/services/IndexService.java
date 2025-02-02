@@ -1,6 +1,8 @@
 package searchengine.services;
 
 import searchengine.model.IndexEntity;
+import searchengine.model.SiteEntity;
+
 import java.util.List;
 
 public interface IndexService {
@@ -8,8 +10,11 @@ public interface IndexService {
     //сохранить индекс
     void saveIndex(IndexEntity indexEntity);
 
-    //удалить всех по Url сайта
-    void delAllBySiteUrl(String siteUrl);
+    //удалить всех по id сайта
+    void delAllBySite(SiteEntity site);
+
+    //удаление индексов по page_id
+    void delAllByPageId(int pageId);
 
     //удалить все
     void clear();

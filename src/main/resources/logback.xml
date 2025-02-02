@@ -1,58 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <configuration>
+    <!--    APPENDERS :  -->
 
+    <!--аппендер для логгирования парсинга -->
     <appender name="pageParserAppenderFile" class="ch.qos.logback.core.FileAppender">
         <file>src/main/logs/pageParserLogger.log</file>
+        <append>false</append>
         <encoder>
             <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>
         </encoder>
     </appender>
-
-<!--    <appender name="allWarnErrorPageParser" class="ch.qos.logback.core.FileAppender">-->
-<!--        <file>src/main/logs/allWarErrorPageParser.log</file>-->
-<!--        <encoder>-->
-<!--            <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>-->
-<!--        </encoder>-->
-<!--    </appender>-->
-
-    <appender name="traceAppender" class="ch.qos.logback.core.FileAppender">
-        <file>src/main/logs/traceLogger.log</file>
-        <encoder>
-            <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>
-        </encoder>
-    </appender>
-
+    <!--аппендер для логгирования работы класса Indexing -->
     <appender name="indexingAppenderFile" class="ch.qos.logback.core.FileAppender">
         <file>src/main/logs/indexingLogger.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>
+        </encoder>
+    </appender>
+    <!--аппендер для логгирования поиска -->
+    <appender name="searchAppenderFile" class="ch.qos.logback.core.FileAppender">
+        <file>src/main/logs/searcLogger.log</file>
+        <append>false</append>
+        <encoder>
+            <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>
+        </encoder>
+    </appender>
+    <!--аппендер для логгирования всего -->
+    <appender name="traceAppenderFile" class="ch.qos.logback.core.FileAppender">
+        <file>src/main/logs/traceLogger.log</file>
+        <append>false</append>
         <encoder>
             <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>
         </encoder>
     </appender>
 
-<!--loggers-->
+    <appender name="default" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>[%level] %d{YY:MM:dd HH:mm:ss} %M # %msg %n</pattern>
+        </encoder>
+    </appender>
+
+
+    <!--    LOGGERS :    -->
+
+    <!--логгер для логгирования парсинга -->
     <logger name="pageParserLogger" level="info">
         <appender-ref ref="pageParserAppenderFile"/>
-        <additivity>false</additivity>
+<!--        <additivity>false</additivity>-->
     </logger>
-
-<!--    <logger name="allErrorPageParser" level="error">-->
-<!--        <appender-ref ref="allWarnErrorPageParser"/>-->
-<!--    </logger>-->
-
-    <logger name="traceLog" level="info">
-        <appender-ref ref="traceAppender"/>
-        <additivity>false</additivity>
-    </logger>
-
+    <!--логгер для логгирования работы класса Indexing -->
     <logger name="indexingLogger" level="info">
-<!--        <appender-ref ref="indexingAppenderFile"/>-->
-        <appender-ref ref="traceAppender"/>
-        <additivity>false</additivity>
+        <!--        <appender-ref ref="indexingAppenderFile"/>-->
+        <appender-ref ref="traceAppenderFile"/>
+<!--        <additivity>false</additivity>-->
     </logger>
-    <!--loggers-->
-    <root>
+    <!--логгер для логгирования поиска -->
+    <logger name="searchLogger" level="info">
+        <appender-ref ref="searchAppenderFile"/>
+<!--        <additivity>false</additivity>-->
+    </logger>
+    <!--логгер для логгирования всего -->
+    <logger name="traceLogger" level="info">
+        <appender-ref ref="traceAppenderFile"/>
+<!--        <additivity>false</additivity>-->
+    </logger>
+
+
+
+    <!--ROOT-->
+
+    <root level="info">
         <!-- nothink -->
+        <appender-ref ref="default"/>
     </root>
 
 </configuration>
