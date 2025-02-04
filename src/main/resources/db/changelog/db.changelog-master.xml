@@ -91,4 +91,22 @@
         </createTable>
     </changeSet>
 
+
+    <changeSet id="006 create function frequencyDecrement" author="Dimitr">
+        <sql endDelimiter="\nGO" splitStatements="false">
+            CREATE FUNCTION frequency_decrement (VARIADIC list_id INTEGER[]) RETURNS VOID AS $$
+                DECLARE item RECORD;
+                BEGIN
+                FOR item IN (SELECT * FROM lemma WHERE id = ANY (list-Id)) LOOP
+                    IF item.frequency=1
+                        THEN DELETE FROM lemma WHERE id=item.id;
+                        ELSE UPDATE lemma SET frequency=frequency - 1 WHERE id=item.id;
+                    END IF;
+                END LOOP;
+                END
+            $$
+            LANGUAGE plpgsql;
+        </sql>
+    </changeSet>
+
 </databaseChangeLog>

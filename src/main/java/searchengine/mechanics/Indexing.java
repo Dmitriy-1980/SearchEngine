@@ -275,16 +275,10 @@ public class Indexing {
     /**Удаляет все данные связанные с указанной страницей.
      * @param fullUrl адрес страницы данные которой нужно удалить.*/
     private void clearPageData(String fullUrl){
-        String pageUrl = "";//адрес страницы как в бд
-        String siteUrl = "";//url сайта сэтой страницей
-        log.indLog("Indexing.clearPageData():" + pageUrl, "info");
-        for (Site site : configAppl.getSites()){
-            if (fullUrl.toLowerCase().contains(site.getUrl())){
-                pageUrl = fullUrl.substring(site.getUrl().length());
-                siteUrl = site.getUrl();
-                break;
-            }
-        }
+        log.indLog("Indexing.clearPageData():" + fullUrl, "info");
+        String pageUrl = U.getLocalUrl(fullUrl, configAppl.getSites());
+        String siteUrl = U.pagesSite(fullUrl, configAppl.getSites());
+
         //найти id сайта с этой страницей
         SiteEntity siteEntity = siteService.findByUrl(siteUrl);
         int siteId = siteEntity.getId();
@@ -306,6 +300,8 @@ public class Indexing {
         for (Integer id : listLemmaId){
             lemmaService.changeFrequency(id, -1);
         }
+        //lemmaService.frequencyDecrement(listLemmaId);
+
         //удалить связанные со страницей индексы
         indexService.delAllByPageId(pageId);
         //удалитьсаму страницу

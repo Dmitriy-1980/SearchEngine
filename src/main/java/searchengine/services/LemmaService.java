@@ -2,7 +2,6 @@ package searchengine.services;
 
 import searchengine.model.LemmaEntity;
 
-import java.util.HashMap;
 import java.util.List;
 
 public interface LemmaService {
@@ -26,6 +25,8 @@ public interface LemmaService {
     //изменение frequency на заданную величину.
     LemmaEntity changeFrequency(int lemmaId, int addValue);
 
+    //декремент frequency по списку id
+    void frequencyDecrement(List<Integer> listId);
 
     //получить список лемм отсортированный по количеству страниц имеющих лемму
     List<String> getLemmaListSortedByPagesCount(List<String> lemmas);

@@ -1,28 +1,17 @@
 package searchengine.services;
 
-import com.querydsl.jpa.EclipseLinkTemplates;
-import com.querydsl.jpa.impl.JPAQuery;
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
-import jakarta.transaction.Transaction;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
 import searchengine.mechanics.MyLog;
 import searchengine.model.LemmaEntity;
-import searchengine.model.QLemmaEntity;
-import searchengine.model.QSiteEntity;
-import searchengine.model.SiteEntity;
 import searchengine.repositories.LemmaRepository;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-import static searchengine.model.QLemmaEntity.lemmaEntity;
 
 @Service
 @RequiredArgsConstructor
@@ -85,6 +74,16 @@ public class LemmaServiceImpl implements LemmaService{
     }
 
 
+    //инкремент frequency по списку id
+    @Override
+    public void frequencyDecrement(List<Integer> listId){
+        StoredProcedureQuery query = entityManager.createNamedStoredProcedureQuery("frequencyDecrement");
+        Integer[] mass = listId.toArray(Integer[]::new);
+        //query.registerStoredProcedureParameter("list_id", Integer[].class, ParameterMode.IN);
+        Integer[] mass1 = {104964, 104966, 104967};
+        query.setParameter("list_id", mass1);
+        query.execute();
+    }
 
 
     //получить список лемм отсортированный по количеству страниц с каждой (частоте)
