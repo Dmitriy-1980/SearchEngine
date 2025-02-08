@@ -297,10 +297,10 @@ public class Indexing {
             return;
         }
         //уменьшить каждой лемме frequency на 1. (если =0 то удалить)
-        for (Integer id : listLemmaId){
-            lemmaService.changeFrequency(id, -1);
-        }
-        //lemmaService.frequencyDecrement(listLemmaId);
+//        for (Integer id : listLemmaId){
+//            lemmaService.changeFrequency(id, -1);
+//        }
+        lemmaService.frequencyDecrement(listLemmaId);
 
         //удалить связанные со страницей индексы
         indexService.delAllByPageId(pageId);

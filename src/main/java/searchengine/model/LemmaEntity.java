@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@NamedStoredProcedureQuery(
-        name = "frequencyDecrement",procedureName = "frequency_decrement",
-        parameters = @StoredProcedureParameter(mode = ParameterMode.IN, name = "list_id", type = Integer[].class))
+//@NamedStoredProcedureQuery(
+//        name = "frequencyDecrement",procedureName = "frequency_decrement",
+//        parameters = @StoredProcedureParameter(mode = ParameterMode.IN, name = "list_id", type = Integer[].class))
 
 @Getter
 @Setter

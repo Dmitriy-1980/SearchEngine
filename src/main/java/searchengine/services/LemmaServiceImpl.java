@@ -77,12 +77,16 @@ public class LemmaServiceImpl implements LemmaService{
     //инкремент frequency по списку id
     @Override
     public void frequencyDecrement(List<Integer> listId){
-        StoredProcedureQuery query = entityManager.createNamedStoredProcedureQuery("frequencyDecrement");
+        StoredProcedureQuery query = entityManager.createStoredProcedureQuery("frequency_decrement");
         Integer[] mass = listId.toArray(Integer[]::new);
-        //query.registerStoredProcedureParameter("list_id", Integer[].class, ParameterMode.IN);
+        //инструкция ниже, если вместе с @NamedStoruProcedureQuery... почему то удваивают кол переданных массивов. Так из ошибок следует.
+        query.registerStoredProcedureParameter("list_id", Integer[].class, ParameterMode.IN);
         Integer[] mass1 = {104964, 104966, 104967};
         query.setParameter("list_id", mass1);
         query.execute();
+
+//        Integer[] mass1 = {104964, 104966, 104967};
+//        lemmaRep.frequencyDecrement(mass1);
     }
 
 
