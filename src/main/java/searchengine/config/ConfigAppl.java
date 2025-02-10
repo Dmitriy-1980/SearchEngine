@@ -24,9 +24,6 @@ import java.util.List;
 public class ConfigAppl {
     private int deepLimit;
     private List<Site> sites;
-    //private int offset;
-    //private int limit;
-
     private String userAgent;
     private String referer;
     private int timeout; //таймаут(ms) между обращениями к сайту

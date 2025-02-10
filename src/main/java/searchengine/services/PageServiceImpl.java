@@ -58,9 +58,6 @@ public class PageServiceImpl implements PageService {
     @Override
     public void delAllBySiteId(SiteEntity site) {
         System.out.println("STOP STOP STOP  pageServiseImpl.delAllBySiteId");
-//       JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-//       QPageEntity qPage = QPageEntity.pageEntity;
-//       jqf.delete(qPage).where(qPage.siteId.id.eq(site));
     }
 
     //удалить страницу по id
@@ -71,7 +68,8 @@ public class PageServiceImpl implements PageService {
     //удалить все
     @Override
     public void clear(){
-          pageRep.deleteAll();
+          //pageRep.deleteAll();
+        pageRep.deleteAllInBatch();
     }
 
     //отфильтровать список page_id по заданному сайту (те убрать страницы не с указанного сайта)
@@ -113,11 +111,6 @@ public class PageServiceImpl implements PageService {
     @Override
     public int getIdByPathAndSite(String path, SiteEntity site){
         return pageRep.getByPathAndSiteId(path, site).getId();
-//        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-//        CriteriaQuery<Integer> cq = cb.createQuery(Integer.class);
-//        Root<PageEntity> root = cq.from(PageEntity.class);
-//        cq.select(root.get("id")).where(cb.equal(root.get("path"), path)).where();
-//        return entityManager.createQuery(cq).getResultList();
     }
 
     //получить список id страниц по id-сайта

@@ -74,7 +74,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         StatisticsData statisticsData = new StatisticsData();
         statisticsData.setTotal( getTotalStatistics() );
         List<DetailedStatisticsItem> listDetaled = new ArrayList<>();
-        //config.checkDuplicate();
         for (Site site : config.getSites()){
             listDetaled.add( getDetailedStatisticsItem(site.getUrl()) );
         }
@@ -90,7 +89,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         statisticsResponse.setResult(true);
         for (DetailedStatisticsItem item : statisticsResponse.getStatistics().getDetailed()){
             if ( item.getStatus().equals(IndexingStatus.INDEXING.toString()) ){
-                //поле выше не понятно по смыслу. Поставил- если так или иначе закончена индексация то true
                 statisticsResponse.setResult( false );
                 break;
             }

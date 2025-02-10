@@ -1,7 +1,6 @@
 package searchengine.services;
 
 import searchengine.model.LemmaEntity;
-
 import java.util.List;
 
 public interface LemmaService {

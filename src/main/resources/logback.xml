@@ -46,18 +46,18 @@
     <!--    LOGGERS :    -->
 
     <!--логгер для логгирования парсинга -->
-    <logger name="pageParserLogger" level="info">
+    <logger name="pageParserLogger" level="error">
         <appender-ref ref="pageParserAppenderFile"/>
 <!--        <additivity>false</additivity>-->
     </logger>
     <!--логгер для логгирования работы класса Indexing -->
-    <logger name="indexingLogger" level="info">
+    <logger name="indexingLogger" level="error">
         <!--        <appender-ref ref="indexingAppenderFile"/>-->
         <appender-ref ref="traceAppenderFile"/>
 <!--        <additivity>false</additivity>-->
     </logger>
     <!--логгер для логгирования поиска -->
-    <logger name="searchLogger" level="info">
+    <logger name="searchLogger" level="error">
         <appender-ref ref="searchAppenderFile"/>
 <!--        <additivity>false</additivity>-->
     </logger>

@@ -2,8 +2,6 @@ package searchengine.dto;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 /**Класс возвращаемого объекта.
  */
 @Data

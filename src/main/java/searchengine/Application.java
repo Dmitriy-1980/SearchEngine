@@ -13,7 +13,6 @@ import searchengine.mechanics.PageParser;
 
 @ComponentScan("searchengine")
 @RequiredArgsConstructor
-//@ConfigurationProperties(prefix = "indexing-settings")
 public class Application {
     private static final MyLog log = new MyLog();
 

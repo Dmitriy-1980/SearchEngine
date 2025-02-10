@@ -71,8 +71,10 @@ public class U {
 
     //проверить ссылку на соответствие требуему виду (
     /**<pre>Проверка ссылки на корректность: Корректная должна начинаться на :
-     * / или // или http:// или https:// </pre>*/
+     * / или // или http:// или https://
+     * и не должна кончаться на расширение файла</pre>*/
     public static boolean isCorrectLink(String url){
+        if (url.matches(".+\\.[a-zA-Z0-9]{1,10}(\\?.*)*$")){ return false; }//отсевссылок на файлы
         if (url.startsWith("/") && url.length() > 1){ return true; }
         if (url.startsWith("//") && url.length() > 5){ return true; }
         if (url.startsWith("http://") && url.length() > 10){ return true; }

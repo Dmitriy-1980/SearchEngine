@@ -25,12 +25,13 @@ public class WaitOfIndexEnd extends RecursiveAction {
               indexing.setIsRunning(false);
             }
         System.out.println("Индексация закончена. ");
-        log.indLog("WaitOfIndexEnd.compute(): индексация закончена.","info");
+        log.traceLog("WaitOfIndexEnd.compute(): индексация закончена. Duration(ms)="
+                + (System.currentTimeMillis() - start),"info");
 
         indexing.setIsRunning(false);
         String msg = "Indexing completed. Duration(ms)=" + String.valueOf(System.currentTimeMillis() - start);
-        log.indLog(msg, "info");
-        log.indLog("--------","info");
-        log.parsLog("--------", "info");
+        //log.indLog(msg, "info");
+        //log.indLog("--------","info");
+        //log.parsLog("--------", "info");
     }
 }

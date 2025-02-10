@@ -1,6 +1,5 @@
 package searchengine.services;
 
-import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -9,9 +8,7 @@ import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import searchengine.config.ConfigAppl;
 import searchengine.model.IndexEntity;
-import searchengine.model.QSiteEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
 
@@ -27,8 +24,6 @@ public class IndexServiceImpl implements IndexService{
     private final EntityManager entityManager;
     private final LemmaService lemmaService;
     private final PageService pageService;
-    private final SiteService siteService;
-    private final ConfigAppl configAppl;
 
     //сохранить индекс
     @Override
@@ -41,10 +36,6 @@ public class IndexServiceImpl implements IndexService{
     public void delAllBySite(SiteEntity site){
         List<Integer> listPageId = pageService.getListIdBySite(site);
         indexRep.deleteAllByPageIdIn(listPageId);
-//        //indexRep.delAllBySiteUrl(siteUrl);
-//        QSiteEntity qSite = QSiteEntity.siteEntity;
-//        JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
-//        jqf.delete(qSite).where(qSite.url.eq(siteUrl));
     }
 
     //удаление индексов по page_id
@@ -55,8 +46,8 @@ public class IndexServiceImpl implements IndexService{
     //удалить все
     @Override
     public void clear(){
-        //indexRep.clear();
-        indexRep.deleteAll();
+        //indexRep.deleteAll();
+        indexRep.deleteAllInBatch();
     }
 
     //получить список id страниц по конкретной лемме

@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
-import searchengine.mechanics.MyLog;
 import searchengine.model.LemmaEntity;
 import searchengine.repositories.LemmaRepository;
 
@@ -22,7 +21,6 @@ public class LemmaServiceImpl implements LemmaService{
     private final EntityManager entityManager;
     private final SiteService siteService;
     private final ConfigAppl configAppl;
-    private final MyLog log = new MyLog();
 
     //добавить лемму
     @Override
@@ -50,7 +48,8 @@ public class LemmaServiceImpl implements LemmaService{
     //удалить все
     @Override
     public void clear(){
-        lemmaRep.deleteAll();
+        //lemmaRep.deleteAll();
+        lemmaRep.deleteAllInBatch();
     }
 
 
@@ -77,16 +76,25 @@ public class LemmaServiceImpl implements LemmaService{
     //инкремент frequency по списку id
     @Override
     public void frequencyDecrement(List<Integer> listId){
-        StoredProcedureQuery query = entityManager.createStoredProcedureQuery("frequency_decrement");
-        Integer[] mass = listId.toArray(Integer[]::new);
-        //инструкция ниже, если вместе с @NamedStoruProcedureQuery... почему то удваивают кол переданных массивов. Так из ошибок следует.
-        query.registerStoredProcedureParameter("list_id", Integer[].class, ParameterMode.IN);
-        Integer[] mass1 = {104964, 104966, 104967};
-        query.setParameter("list_id", mass1);
-        query.execute();
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 
-//        Integer[] mass1 = {104964, 104966, 104967};
-//        lemmaRep.frequencyDecrement(mass1);
+        CriteriaUpdate<LemmaEntity> cu = cb.createCriteriaUpdate(LemmaEntity.class);
+        Root<LemmaEntity> rootUpdate = cu.from(LemmaEntity.class);
+        CriteriaBuilder.In<Integer> inList = cb.in(rootUpdate.get("id"));
+        for (Integer id : listId){
+            inList.value(id);
+        }
+        Expression<Integer> newFrequency = cb.sum(rootUpdate.get("frequency"), -1);
+        Path<Integer> fieldFrequency = rootUpdate.get("frequency");
+        cu.set(fieldFrequency,newFrequency);
+        cu.where(inList);
+
+        CriteriaDelete<LemmaEntity> cd = cb.createCriteriaDelete(LemmaEntity.class);
+        Root<LemmaEntity> rootDelete = cd.from(LemmaEntity.class);
+        cd.where(cb.equal(rootDelete.get("frequency"), 0));
+
+        entityManager.createQuery(cu).executeUpdate();
+        entityManager.createQuery(cd).executeUpdate();
     }
 
 

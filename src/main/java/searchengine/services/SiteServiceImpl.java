@@ -41,7 +41,6 @@ public class SiteServiceImpl implements SiteService {
 
     //проверить наличие сайтов у которых индексация еще идет
     public boolean existIndexing(){
-        //return siteRep.existIndexing();
         JPAQueryFactory jqf = new JPAQueryFactory(entityManager);
         QSiteEntity qSite = QSiteEntity.siteEntity;
         long count = jqf.selectFrom(qSite).where(qSite.status.eq(IndexingStatus.INDEXING.toString())).fetch().stream().count();

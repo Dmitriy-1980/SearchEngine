@@ -80,8 +80,8 @@ public PageParser(String pageUrl, ForkJoinPool pool,
     @SneakyThrows
     @Override
     public void compute(){
-    log.parsLog(MessageFormat.format("PageParser.compute(): url:{0}, deep:{1}, onlyThisPage:{2}, linksSet.size():{3}, siteLemmaMapSite():{4}",
-                 pageUrl,deep,onlyThisPage,linksSet.size(),siteLemmaMap.size()), "info");
+    //log.parsLog(MessageFormat.format("PageParser.compute(): url:{0}, deep:{1}, onlyThisPage:{2}, linksSet.size():{3}, siteLemmaMap():{4}",
+    //             pageUrl,deep,onlyThisPage,linksSet.size(),siteLemmaMap.size()), "info");
 
         PageEntity page = new PageEntity();
 
@@ -157,15 +157,18 @@ public PageParser(String pageUrl, ForkJoinPool pool,
 
     //получить ответ от сйта в виде Connection.Response
     private Connection.Response getResponse(){
+        Connection.Response result;
         try{
-            return Jsoup.connect(pageUrl)
+            result = Jsoup.connect(pageUrl)
                     .ignoreHttpErrors(true)
                     .userAgent(config.getUserAgent())
                     .referrer(config.getReferer())
                     .timeout(config.getResponseWait())
                     .execute();
+            if (result == null) { throw new IllegalAccessException("Нет ожидаемого ответа."); }
+            else { return result; }
         }catch (Exception ex){
-            log.parsLog("PageParser.getResponse("+pageUrl+")" + ex.getCause(), "error");
+            log.parsLog("PageParser.getResponse("+pageUrl+") " + ex.getMessage(), "error");
             return null;
         }
     }
@@ -178,7 +181,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         site.setStatus(IndexingStatus.FAILED.toString());
         site.setLastError(msg);
         siteService.saveSite(site);
-        log.parsLog("http код: "+msg, "warn");
+        //log.parsLog("http код: "+msg, "warn");
     }
 
     //сохранение текущего сайта при отсутствии ошибок

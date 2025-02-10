@@ -32,6 +32,7 @@ public class Search {
     private final MyLog log = new MyLog();
     @PersistenceContext
     private final EntityManager entityManager;
+    private final Indexing indexing;
 
     //выполнить поисковый запрос:
     //1 получить список ID подходящих страниц
@@ -174,10 +175,13 @@ public class Search {
      * При нахождении тега содержащего все искомые слова поиск прекращается.
      * @param document код страницы.
      * @param lemmaList список лемм- искомых слов.
-     * @return String- найденный кусок текста с выделенными искомыми словами.*/
+     * @return String- найденный кусок текста с выделенными искомыми словами.
+     * <pre>
+     *      Если совпадений в пределах одного элемента нет, то вернет заголовок страницы.
+     * </pre>*/
     private String getSnippet(Document document, List<String> lemmaList){
         List<String> tagsName = new ArrayList<>(List.of("title","h1","h2","h3","p","span","div")); //":not(title,h1,h2,h3,p,span)"
-        Snippet snippet = new Snippet("",0);
+        Snippet snippet = new Snippet(document.select("title").text(),0); //дефолтный сниппет, безсовпадений
         int wordsInQuery = lemmaList.size();
         //перебор тегов и поиск в них нужных слов
         for (String tagName : tagsName){
@@ -287,7 +291,7 @@ public class Search {
         { return onNegativeResult("Заданый сайт не из списка индексации."); }
         if (offset < 0 || limit < 0 )
         { return onNegativeResult("Заданы не верные параметры запроса."); }
-        if (siteService.existIndexing())
+        if (indexing.getIsRunning())
         { return onNegativeResult("В данный момент идет индексация.попробуйте позже."); }
 
         return null;
