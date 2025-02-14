@@ -182,12 +182,14 @@ public class Search {
     private String getSnippet(Document document, List<String> lemmaList){
         List<String> tagsName = new ArrayList<>(List.of("title","h1","h2","h3","p","span","div")); //":not(title,h1,h2,h3,p,span)"
         Snippet snippet = new Snippet(document.select("title").text(),0); //дефолтный сниппет, безсовпадений
+        System.out.println(">>>>default "+snippet);
         int wordsInQuery = lemmaList.size();
         //перебор тегов и поиск в них нужных слов
         for (String tagName : tagsName){
             boolean breakFlag = false;
             for (Element tag : document.body().select(tagName)){
                 Snippet newSnippet = getSnippetOnTag(tag.text(), lemmaList );
+                System.out.println("\t\tcount, newSnippet " + newSnippet.wordCount );
                 if (newSnippet.wordCount==wordsInQuery){
                     snippet.setText(newSnippet.getText());
                     snippet.setWordCount(newSnippet.getWordCount());
@@ -202,26 +204,33 @@ public class Search {
             if (breakFlag) {break;}
         }
         log.searchLog("after getSnippet(). return: " + snippet.text, "info");
+        System.out.println("<<<<after getSnippet(). return: " + snippet.text);
         return snippet.text;
 }
-
 
 
     /**В переданном тексте выделяет слова из списка
      * и считает кол. найденных разных слов из этого списка.
      * При нахождении всех слов из списка поиск прекращается.
-     * @param text текст в которовм выделяются слова.
+     * @param inputText текст в которовм выделяются слова.
      * @param lemmaList список выделяемых слов.*/
-    private Snippet getSnippetOnTag(String text, List<String> lemmaList){
-        int count =0;
-        String textLow = text.toLowerCase();
-        for (String word : lemmaList){
-            if (textLow.contains(word)){
-                count++;
-                text = markWord(text, word);
+    private Snippet getSnippetOnTag(String inputText, List<String> lemmaList){
+        List<String> foundLemmas = new ArrayList<>();
+        List<String> originalWords = new ArrayList<>();
+        List<String> text = List.of(inputText.split("[ :punct]+"));
+        for (String word : text){
+            List<String> lemmas = luceneService.getLemma(word);
+            if (lemmas.isEmpty()) { continue; }
+            String lemma = lemmas.get(0);
+            if (lemmaList.contains(lemma)){
+                if (!foundLemmas.contains(lemma)) { foundLemmas.add(lemma); }
+                if (!originalWords.contains(word.toLowerCase())) {
+                    originalWords.add(word.toLowerCase());
+                    inputText = markWord(inputText, word);
+                }
             }
         }
-        return new Snippet(text, count);
+        return new Snippet(inputText, foundLemmas.size());
     }
 
 

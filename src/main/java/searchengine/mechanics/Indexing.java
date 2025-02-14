@@ -170,7 +170,8 @@ public class Indexing {
                 if (tasksOfSite.getValue().isEmpty()) {
                     SiteEntity siteEntity = siteService.findByUrl(tasksOfSite.getKey());
                     if (siteEntity.getStatus().equals(IndexingStatus.INDEXING.toString())){
-                    siteEntity.setStatus(IndexingStatus.INDEXING.toString());
+                    siteEntity.setStatus(IndexingStatus.INDEXED.toString());
+                    siteService.saveSite(siteEntity);
                     }
                     taskListIterator.remove();
                 }
