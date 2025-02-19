@@ -1,4 +1,4 @@
-package searchengine.services;
+package searchengine.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,10 @@ import searchengine.dto.statistics.StatisticsResponse;
 import searchengine.dto.statistics.TotalStatistics;
 import searchengine.model.IndexingStatus;
 import searchengine.model.SiteEntity;
+import searchengine.services.LemmaService;
+import searchengine.services.PageService;
+import searchengine.services.SiteService;
+import searchengine.services.StatisticsService;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;

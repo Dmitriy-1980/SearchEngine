@@ -8,9 +8,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CommandResult  {
-    private boolean result;
-    private String error;
-
-
-
+    private Boolean result;
 }

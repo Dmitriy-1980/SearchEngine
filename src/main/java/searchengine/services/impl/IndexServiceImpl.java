@@ -1,4 +1,4 @@
-package searchengine.services;
+package searchengine.services.impl;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,13 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 import searchengine.model.IndexEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.IndexRepository;
+import searchengine.services.IndexService;
+import searchengine.services.LemmaService;
+import searchengine.services.PageService;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class IndexServiceImpl implements IndexService{
+public class IndexServiceImpl implements IndexService {
 
     private final IndexRepository indexRep;
     @PersistenceContext
@@ -46,7 +49,6 @@ public class IndexServiceImpl implements IndexService{
     //удалить все
     @Override
     public void clear(){
-        //indexRep.deleteAll();
         indexRep.deleteAllInBatch();
     }
 

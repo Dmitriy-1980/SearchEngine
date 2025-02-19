@@ -16,7 +16,6 @@ indexing-settings:
 #      name: PlayBack.Ru
 #    - url: https://mail.ru/
 #      name: mailRu
-  redissonHost: redis://127.0.0.1:6379 #расположение сервера Redis
 server:
   port: 8085
 

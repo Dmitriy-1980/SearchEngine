@@ -1,4 +1,4 @@
-package searchengine.services;
+package searchengine.services.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -10,11 +10,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
-import searchengine.mechanics.U;
+import searchengine.mechanics.Utilites;
 import searchengine.model.PageEntity;
 import searchengine.model.QPageEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.PageRepository;
+import searchengine.services.PageService;
+import searchengine.services.SiteService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -68,7 +70,6 @@ public class PageServiceImpl implements PageService {
     //удалить все
     @Override
     public void clear(){
-          //pageRep.deleteAll();
         pageRep.deleteAllInBatch();
     }
 
@@ -76,7 +77,7 @@ public class PageServiceImpl implements PageService {
     @Override
     public List<Integer> filterPageIdListBySite(List<Integer> pageIdList, String url){
         if (url == null || url.isEmpty()
-                || !U.isExistSite(url, configAppl.getSites())
+                || !Utilites.isExistSite(url, configAppl.getSites())
                 || !siteService.existUrl(url)){
             return pageIdList;
         }

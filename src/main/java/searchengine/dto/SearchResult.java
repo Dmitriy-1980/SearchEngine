@@ -6,8 +6,8 @@ import java.util.List;
 //результат поиска по списку слов
 @Data
 public class SearchResult{
-    boolean result;
-    int count;
-    List<PageOnRequest> data;
-    String error;
+    private Boolean result;
+    private Integer count;
+    private List<PageInResponse> data;
+    private String error;
 }

@@ -1,4 +1,4 @@
-package searchengine.services;
+package searchengine.services.impl;
 
 import jakarta.persistence.*;
 import jakarta.persistence.criteria.*;
@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
 import searchengine.model.LemmaEntity;
 import searchengine.repositories.LemmaRepository;
+import searchengine.services.LemmaService;
+import searchengine.services.SiteService;
 
 import java.util.*;
 
@@ -15,7 +17,7 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class LemmaServiceImpl implements LemmaService{
+public class LemmaServiceImpl implements LemmaService {
     private final LemmaRepository lemmaRep;
     @PersistenceContext
     private final EntityManager entityManager;
@@ -48,7 +50,6 @@ public class LemmaServiceImpl implements LemmaService{
     //удалить все
     @Override
     public void clear(){
-        //lemmaRep.deleteAll();
         lemmaRep.deleteAllInBatch();
     }
 

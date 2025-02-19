@@ -1,8 +1,10 @@
-package searchengine.services;
+package searchengine.services.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.lucene.morphology.LuceneMorphology;
 import org.springframework.stereotype.Service;
+import searchengine.services.LuceneService;
+
 import java.util.*;
 
 @Service

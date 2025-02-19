@@ -30,8 +30,5 @@ public class WaitOfIndexEnd extends RecursiveAction {
 
         indexing.setIsRunning(false);
         String msg = "Indexing completed. Duration(ms)=" + String.valueOf(System.currentTimeMillis() - start);
-        //log.indLog(msg, "info");
-        //log.indLog("--------","info");
-        //log.parsLog("--------", "info");
     }
 }

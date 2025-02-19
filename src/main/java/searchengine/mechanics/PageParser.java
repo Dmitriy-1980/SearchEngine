@@ -3,7 +3,6 @@ package searchengine.mechanics;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
-import lombok.Synchronized;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,7 +14,6 @@ import searchengine.model.*;
 import searchengine.services.*;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,15 +24,15 @@ public class PageParser extends RecursiveAction {//extends RecursiveAction
     @Getter
     private final String pageUrl;
     @Setter
-    private boolean onlyThisPage = false; //флаг показывающи, что индексация только этой страницы
+    private Boolean onlyThisPage = false; //флаг показывающи, что индексация только этой страницы
     private SiteEntity site; //объект "сайт" - формируется при чтении главной страницы. После передается параметром.
     private Document document;
     private final Vector<String> linksSet; //лист ссылок всего сайта
     private final ConcurrentHashMap<String, Integer> siteLemmaMap;//леммы всего сайта с кол их вхождений
     private final ConcurrentHashMap<String, List<RecursiveAction>> taskList;//MAP с задачами
     private final ForkJoinPool pool;
-    private final int deep;
-    private String protocol; // протокол запроса (в виде http: или https: )
+    private final Integer deep;
+    private String protocol;
     private final ConfigAppl config;
 
     private final SiteService siteService;
@@ -44,11 +42,7 @@ public class PageParser extends RecursiveAction {//extends RecursiveAction
     private final LuceneService luceneService;
 
     private final MyLog log = new MyLog();
-/*В конструкторпередаются сервисы, конфиг приложения, пулл потоков - всегда одинаково.
-* deep-глубина вложенности обрабатываемой ссылки. Если deep==0 то это главная страница.
-* linkSet и siteLemmaMap коллекции ссылок и лемм одного сайта.Они сквозные для всего сайта
-* и нужны для контроля на уникальность ссылок и подсчета лемм без обращения к SQL-серверу.
-* taskList- структура для отслеживания состояния задач. Вполнена, остановлена, ошибка*/
+
 
 public PageParser(String pageUrl, ForkJoinPool pool,
                   Vector<String> linksSet, ConcurrentHashMap<String, Integer> siteLemmaMap,
@@ -70,7 +64,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         this.site = site;
         if (deep == 1){
             linksSet.add(pageUrl);
-            this.protocol = U.getProtocol(pageUrl);
+            this.protocol = Utilites.getProtocol(pageUrl);
             this.site = new SiteEntity();
             this.site.setUrl(pageUrl);
         }
@@ -80,9 +74,6 @@ public PageParser(String pageUrl, ForkJoinPool pool,
     @SneakyThrows
     @Override
     public void compute(){
-    //log.parsLog(MessageFormat.format("PageParser.compute(): url:{0}, deep:{1}, onlyThisPage:{2}, linksSet.size():{3}, siteLemmaMap():{4}",
-    //             pageUrl,deep,onlyThisPage,linksSet.size(),siteLemmaMap.size()), "info");
-
         PageEntity page = new PageEntity();
 
         try{
@@ -112,8 +103,8 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         for (Element item : links){
             if (item.attribute("href") == null) { continue; }
             String link = item.attribute("href").getValue();
-            if (!U.isCorrectLink(link) || !U.inThisSite(link,site.getUrl())) { continue; }
-            String FullLink = U.getFullUrl(link, site.getUrl(), protocol);
+            if (!Utilites.isCorrectLink(link) || !Utilites.inThisSite(link,site.getUrl())) { continue; }
+            String FullLink = Utilites.getFullUrl(link, site.getUrl(), protocol);
             //добавление уникальных ссылок в "сквозной список сайта" и локальный список страницы
             synchronized (linksSet) {
                 if (!linksSet.contains(FullLink)) {
@@ -203,7 +194,7 @@ public PageParser(String pageUrl, ForkJoinPool pool,
         PageEntity page = new PageEntity();
         page.setCode(code);
         if (deep == 1){ page.setPath("/"); }
-        else { page.setPath(U.getLocalUrl(pageUrl, site.getUrl() ) ); }
+        else { page.setPath(Utilites.getLocalUrl(pageUrl, site.getUrl() ) ); }
         page.setContent(document.toString());
         //page.setContent(Thread.currentThread().getName());
         page.setSiteId(site);

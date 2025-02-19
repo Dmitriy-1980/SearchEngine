@@ -1,4 +1,4 @@
-package searchengine.services;
+package searchengine.services.impl;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
@@ -10,6 +10,7 @@ import searchengine.model.IndexingStatus;
 import searchengine.model.QSiteEntity;
 import searchengine.model.SiteEntity;
 import searchengine.repositories.SiteRepository;
+import searchengine.services.SiteService;
 
 @Service
 @RequiredArgsConstructor

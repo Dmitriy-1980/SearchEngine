@@ -4,8 +4,6 @@ package searchengine.mechanics;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-
 
 @NoArgsConstructor
 public class MyLog {
@@ -14,10 +12,10 @@ public class MyLog {
     private final Logger searchLogger = LoggerFactory.getLogger("searchLogger");
     private final Logger traceLogger = LoggerFactory.getLogger("traceLogger");
 
-    private long indexingLogTime = System.currentTimeMillis();//время последнего сообщения
-    private long parserLogTime = System.currentTimeMillis();
-    private long traceLogTime = System.currentTimeMillis();
-    private long searchLogTime = System.currentTimeMillis();
+    private Long indexingLogTime = System.currentTimeMillis();//время последнего сообщения
+    private Long parserLogTime = System.currentTimeMillis();
+    private Long traceLogTime = System.currentTimeMillis();
+    private Long searchLogTime = System.currentTimeMillis();
 
     private String getMessage(long lastTime, String message){
        return

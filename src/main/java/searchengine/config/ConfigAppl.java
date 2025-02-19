@@ -22,14 +22,14 @@ import java.util.List;
 @Configuration
 @RequiredArgsConstructor
 public class ConfigAppl {
-    private int deepLimit;
+    private Integer deepLimit;
     private List<Site> sites;
     private String userAgent;
     private String referer;
-    private int timeout; //таймаут(ms) между обращениями к сайту
-    private int responseWait; //время одижания ответа индексируемой страницы
-    private int maxFrequency; //макс колстраниц с искомой леммой. (отсев чрезмерно распространенных)
-    private String redissonHost; //расположение сервера Redis
+    private Integer timeout;
+    private Integer responseWait;
+    private Integer maxFrequency;
+
 
     /**<pre>Проверяет список сайтов на случайное дублирование в application.yml
      *Убирает конечный сшеш в адресе и фрагмент "www." в начале адреса.</pre>*/
@@ -40,8 +40,6 @@ public class ConfigAppl {
             String s = site.getUrl().replaceAll("/$","")
                     .toLowerCase().replace("://www.","://");
             site.setUrl(s);
-
-
             if (!tmpList.contains(site)){
                 tmpList.add(site);
             }
@@ -54,6 +52,5 @@ public class ConfigAppl {
     public LuceneMorphology luceneMorphology() throws IOException {
         return new RussianLuceneMorphology(); //вернет объект для работы с русской морфологией
     }
-
 
 }

@@ -10,8 +10,9 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import searchengine.config.ConfigAppl;
-import searchengine.dto.PageOnRequest;
+import searchengine.dto.PageInResponse;
 import searchengine.dto.SearchResult;
+import searchengine.exceptions.SearchResultError;
 import searchengine.model.PageEntity;
 import searchengine.services.*;
 
@@ -34,12 +35,7 @@ public class Search {
     private final EntityManager entityManager;
     private final Indexing indexing;
 
-    //выполнить поисковый запрос:
-    //1 получить список ID подходящих страниц
-    //2 пересчитать ранги и сформировать список объектов с даными по страницам
-    //3 получить сниппеты
-    //4 формировать ответ заданного формата
-    /**Возвращает объект SearchResult.
+       /**Возвращает объект SearchResult.
      * @param "String query- строка запроса полученная отконтроллера.
      * @param "String siteUrl- адрес сайта по которому поиск. Если пуст то по всем.
      * @param "int offset- "отступ" от начала списка подходящихстраниц.
@@ -49,26 +45,24 @@ public class Search {
         log.searchLog("search: " + query, "info");
 
         //тут серия проверок
-        SearchResult searchResult = checkQueryOnError(query, siteUrl, offset, limit);
-        if (searchResult != null)
-        { return searchResult; }
+        checkQueryOnError(query, siteUrl, offset, limit);
 
         //получить список лемм отсортированный в порядке возрастания кол страниц с ними
         //отсеивая слишко мчасто встречающиеся (где кол > предельного ConfigAppl.maxFrequency )
-        List<String> lemmaList = new ArrayList<>();
-        lemmaList = lemmaService.getLemmaListSortedByPagesCount(luceneService.getUniqLemmaList(query));
-        if (lemmaList.isEmpty())
-            { return onNegativeResult("Заданные слова в месте не встречаются.");} //нет лемм => нет результата
+        List<String> sortedLemmasList =
+                lemmaService.getLemmaListSortedByPagesCount(luceneService.getUniqLemmaList(query));
+        if (sortedLemmasList.isEmpty())
+            { throw new SearchResultError("Заданные слова в месте не встречаются.");} //нет лемм => нет результата
 
         //получить список id подходящих страниц
-        List<Integer> listPageId = getSuitablePageIdList(siteUrl, lemmaList);
+        List<Integer> listPageId = getSuitablePageIdList(siteUrl, sortedLemmasList);
         if (listPageId.isEmpty())
-        { return onNegativeResult("Заданные слова в месте не встречаются."); }
+            { throw new SearchResultError("Заданные слова в месте не встречаются."); }
 
         //получить список объектов- результатов поиска
-        List<PageOnRequest> pagesOnRequests = getPagesOnRequest(listPageId, lemmaList);
+        List<PageInResponse> pagesInResponse = getPagesInResponse(listPageId, sortedLemmasList);
         //и обрезать по заданный offset и limit
-        List<PageOnRequest> listResult = getLimitResult(pagesOnRequests, offset, limit);
+        List<PageInResponse> listResult = getLimitResult(pagesInResponse, offset, limit);
 
         //формирование ответа
         SearchResult result = new SearchResult();
@@ -111,11 +105,11 @@ public class Search {
      * @param listPageId список id страиц содержащих все слова из запроса.
      * @param lemmaList список лемм-слов из запроса.
      * @return "List<PageOnRequest>- список объектов PageOnRequest возвращаемых по запросу.*/
-    private List<PageOnRequest> getPagesOnRequest(List<Integer> listPageId, List<String> lemmaList){
-        log.searchLog("before getPagesOnRequest() ", "info");
+    private List<PageInResponse> getPagesInResponse(List<Integer> listPageId, List<String> lemmaList){
+        log.searchLog("before getPagesInResponse() ", "info");
         float maxRel = 0;
         List<Integer> listLemmaId;
-        List<PageOnRequest> pageRelList = new ArrayList<>();
+        List<PageInResponse> pageRelList = new ArrayList<>();
 
         //создать объект-результат поиска для каждой страницы
         for (int pageId : listPageId){
@@ -123,7 +117,7 @@ public class Search {
             listLemmaId = indexService.getAllLemmaIdByPageId(pageId);
             float absRel = indexService.getSummaryRank(listLemmaId);
 
-            PageOnRequest pr = new PageOnRequest();
+            PageInResponse pr = new PageInResponse();
             PageEntity pageEntity = pageService.getPage(pageId);
 
             Document document = Jsoup.parse(pageEntity.getContent());
@@ -132,7 +126,7 @@ public class Search {
 
             pr.setUri(pageEntity.getPath());
             pr.setTitle(title);
-            pr.setSnipped(getSnippet(document, lemmaList));
+            pr.setSnippet(getSnippet(document, lemmaList));
             pr.setRelevance(absRel);
             pr.setSite( pageEntity.getSiteId().getUrl() );
             pr.setSiteName( pageEntity.getSiteId().getName() );
@@ -142,7 +136,7 @@ public class Search {
         }
 
         //расчет относительной релевантности и внесение данных посайту
-        for (PageOnRequest item : pageRelList){
+        for (PageInResponse item : pageRelList){
             item.setRelevance( item.getRelevance()/maxRel );
         }
 
@@ -155,7 +149,7 @@ public class Search {
      * нового элемента в соответствии с его релевантностью.
      * @param "List<PageOnRequest>- целевой список.
      * @param "PageOnRequest- вставляемое значение.*/
-    private void insertPageRelevance(List<PageOnRequest> list, PageOnRequest pr){
+    private void insertPageRelevance(List<PageInResponse> list, PageInResponse pr){
         if (list.isEmpty()){ list.add(pr); return; }
 
         int posForInsert = 0;
@@ -182,14 +176,12 @@ public class Search {
     private String getSnippet(Document document, List<String> lemmaList){
         List<String> tagsName = new ArrayList<>(List.of("title","h1","h2","h3","p","span","div")); //":not(title,h1,h2,h3,p,span)"
         Snippet snippet = new Snippet(document.select("title").text(),0); //дефолтный сниппет, безсовпадений
-        System.out.println(">>>>default "+snippet);
         int wordsInQuery = lemmaList.size();
         //перебор тегов и поиск в них нужных слов
         for (String tagName : tagsName){
             boolean breakFlag = false;
             for (Element tag : document.body().select(tagName)){
                 Snippet newSnippet = getSnippetOnTag(tag.text(), lemmaList );
-                System.out.println("\t\tcount, newSnippet " + newSnippet.wordCount );
                 if (newSnippet.wordCount==wordsInQuery){
                     snippet.setText(newSnippet.getText());
                     snippet.setWordCount(newSnippet.getWordCount());
@@ -204,7 +196,6 @@ public class Search {
             if (breakFlag) {break;}
         }
         log.searchLog("after getSnippet(). return: " + snippet.text, "info");
-        System.out.println("<<<<after getSnippet(). return: " + snippet.text);
         return snippet.text;
 }
 
@@ -271,8 +262,8 @@ public class Search {
      * @param offset отступ от начала списка
      * @param limit кол. записей в результирующем списке.
      * @return List<PageOnRequest>- список результатов*/
-    private List<PageOnRequest> getLimitResult(List<PageOnRequest> inputList, int offset, int limit){
-        List<PageOnRequest> outputList = new ArrayList<>();
+    private List<PageInResponse> getLimitResult(List<PageInResponse> inputList, int offset, int limit){
+        List<PageInResponse> outputList = new ArrayList<>();
         int listLength = inputList.size();
         int last = Math.min(offset + limit, listLength);
 
@@ -293,33 +284,16 @@ public class Search {
      * @param offset с какой по счету записи начать выдачу результатов
      * @param limit кол записей в выдаче
      * */
-    private SearchResult checkQueryOnError(String query, String siteUrl, int offset, int limit){
+    private void checkQueryOnError(String query, String siteUrl, int offset, int limit){
         if (query.isEmpty())
-        { return onNegativeResult("Задан пустой поисковый запрос"); }
-        if (!siteUrl.isEmpty() && !U.isExistSite(siteUrl, configAppl.getSites()) )
-        { return onNegativeResult("Заданый сайт не из списка индексации."); }
+        { throw new SearchResultError("Задан пустой поисковый запрос"); }
+        if (!siteUrl.isEmpty() && !Utilites.isExistSite(siteUrl, configAppl.getSites()) )
+        { throw new SearchResultError("Заданый сайт не из списка индексации."); }
         if (offset < 0 || limit < 0 )
-        { return onNegativeResult("Заданы не верные параметры запроса."); }
+        { throw new SearchResultError("Заданы не верные параметры запроса."); }
         if (indexing.getIsRunning())
-        { return onNegativeResult("В данный момент идет индексация.попробуйте позже."); }
-
-        return null;
+        { throw new SearchResultError("В данный момент идет индексация.попробуйте позже."); }
     }
-
-
-
-    /**Генерирует ответ контроллеру с заданным сообщением.
-     *@param msg сообщение контроллеру для передачи фронту.
-     *@return- SearchResult*/
-    private SearchResult onNegativeResult(String msg){
-        log.searchLog("onNegativeResult(): " + msg, "info");
-        SearchResult searchResult = new SearchResult();
-        searchResult.setResult(false);
-        searchResult.setError(msg);
-        return searchResult;
-    }
-
-
 
 
 

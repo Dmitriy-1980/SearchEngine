@@ -4,16 +4,17 @@ import searchengine.config.Site;
 
 import java.util.List;
 
-//Utilites
-public class U {
+public class Utilites {
 
 
     /**Получить из полного адреса и адреса сайта локальный адрес страницы.
      * @param fullUrl полный адрес страницы
      * @param siteUrl адрес сайта
-     * @return локальный адрес страницы /адрес/ */
+     * @return локальный адрес страницы /адрес/ или пустую строку, если
+     * символ после адреса сайта не слеш*/
     public static String getLocalUrl(String fullUrl, String siteUrl){
-        return fullUrl.substring(siteUrl.length());
+        String pageUrl = fullUrl .substring(siteUrl.length());
+        return pageUrl.startsWith("/") ? pageUrl : "";
     }
 
     /**Получить локальный адрес страницы из полного, если она соотв сайту из переданного списка.
@@ -21,9 +22,10 @@ public class U {
      * @param sitesList список сайтов доступных для индексации
      * @return локальный адрес страницы /адрес/, или пустая строка, если нет такого сайта в списке*/
     public static String getLocalUrl(String fullUrl, List<Site> sitesList){
-        String siteUrl = pagesSite(fullUrl,sitesList);
+        String withOutWWW = fullUrl.replace("://www.", "://");
+        String siteUrl = pagesSite(withOutWWW,sitesList);
         if (siteUrl.isEmpty()){ return ""; }
-        return getLocalUrl(fullUrl, siteUrl);
+        return getLocalUrl(withOutWWW, siteUrl);
     }
 
     /**Получить url сайта из списка соотв переданному fullUrl.

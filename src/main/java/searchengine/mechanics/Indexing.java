@@ -3,8 +3,6 @@ package searchengine.mechanics;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -17,6 +15,7 @@ import searchengine.model.SiteEntity;
 import searchengine.repositories.PageRepository;
 import searchengine.services.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ForkJoinPool;
@@ -37,18 +36,15 @@ public class Indexing {
     private final MyLog log = new MyLog();
     private final ForkJoinPool pool = new ForkJoinPool();
     @Setter
-    /**метка - идет ли в данный момент индексирование*/
     private Boolean isRunning = false;
-    //карта: <url-сайта , список задач по нему>
     /**taskList-карта, где KEY = url сайта, а VALUE = список задачь соотв. этому сайту */
     private final ConcurrentHashMap<String, List<RecursiveAction>> taskList = new ConcurrentHashMap<>();
 
     /**Запуск индексации по команде /api/startIndexing.*/
     public CommandResult startFromList(){
-        //log.indLog("Indexing.startFromList() ", "info");
         if (notMayStart()){
-            return new CommandResult(false, "Индексация уже запущена.");
-        }
+            throw new IllegalStateException("Индексация уже запущена. Попробуйте позже."); }
+
         clearDB();
         long start = System.currentTimeMillis();
         for (Site site : configAppl.getSites()){
@@ -56,7 +52,7 @@ public class Indexing {
         }
         WaitOfIndexEnd waitOfIndexEnd = new WaitOfIndexEnd(this, start);
         pool.submit(waitOfIndexEnd);
-        return new CommandResult(true, "");
+        return new CommandResult(true);
     }
 
 
@@ -64,19 +60,16 @@ public class Indexing {
      * @param url адрес индексируемой страницы.
      * @return CommandResult объект содержащий результат попытки выполнения.*/
     public CommandResult startAdditionalIndexing(String url){
-        //log.indLog("Indexing.StartAdditionalIndexing(" + url + ")", "info");
-
         if (notMayStart()){
-            isRunning = false;
-            return new CommandResult(false, "Индексация уже запущена. Попробуйте позже.");
-        }
+            throw new IllegalStateException("Индексация уже запущена. Попробуйте позже."); }
 
         long start = System.currentTimeMillis();
         String address = checkUrl(url);
         switch (address){
             case "error" -> {
                 isRunning = false;
-                return new CommandResult(false, "Адрес не принадлежит сайтам из списка."); }
+                throw new IllegalStateException("\"Адрес не принадлежит сайтам из списка.");
+            }
             case "site"-> {
                 clearSiteData(url);
                 goSiteIndex(url, true, true);
@@ -90,7 +83,7 @@ public class Indexing {
 
         WaitOfIndexEnd waitOfIndexEnd = new WaitOfIndexEnd(this, start);
         pool.submit(waitOfIndexEnd);
-        return new CommandResult(true, "");
+        return new CommandResult(true);
     }
 
 
@@ -102,7 +95,6 @@ public class Indexing {
      * @param isFirstPage если true то это главная страница сайта
      * <p>Логические параметры обеспечивают разницу параметров передаваемых в задачу парсинга страницы.</p>*/
     private void goSiteIndex(String url, boolean onlyThisPage, boolean isFirstPage){
-        //log.indLog("Indexing.goSiteIndex():"+url+", onlyThisPage="+onlyThisPage, "info");
         int deep = 1;
         SiteEntity siteEntity = null;
         Vector<String> linksSet = new Vector<>(); //уникальный список ссылок со всего сайта
@@ -113,11 +105,7 @@ public class Indexing {
             //получить сущность сайта
             for (Site site : configAppl.getSites()){
                 if (url.toLowerCase().contains(site.getUrl())){
-                    try{
-                        siteEntity = siteService.findByUrl(site.getUrl());
-                    }catch (Exception e){
-                        System.out.println("STOP goSiteIndex - 1");}
-                    break;
+                    siteEntity = siteService.findByUrl(site.getUrl());
                 }
             }
             if (siteEntity==null){
@@ -137,9 +125,9 @@ public class Indexing {
                     linksSet, siteLemmaMap, taskList,
                     siteService, pageService, luceneService, lemmaService, indexService,
                     deep, siteEntity, configAppl);
-            pageParser.setOnlyThisPage(onlyThisPage); //передача метки об индексации исключительно этой страницы
+            pageParser.setOnlyThisPage(onlyThisPage);
 
-            String urlSite = U.pagesSite(url, configAppl.getSites());
+            String urlSite = Utilites.pagesSite(url, configAppl.getSites());
             taskList.put(urlSite, new Vector<>());
             taskList.get(urlSite).add(pageParser);
             pool.submit(pageParser);
@@ -151,7 +139,6 @@ public class Indexing {
      * Этот метод запускаетсяиз специальной задачи WaitOfIndexEnd которая висит в пуле потоков.
      * */
     public void waitOfIndexingEnd(){
-        //log.indLog("Indexing.waitOfIndexingEnd()", "info");
         try {
             Thread.sleep(1000);
         }catch (InterruptedException e){
@@ -161,7 +148,6 @@ public class Indexing {
         }
 
         //перебирать список задач до тех пор, пока он не опустеет
-        //Из-за сложностей с синхронизацией - обнаруженный опустевший список удаляется из карты после очередного прохода по ней.
         while (!taskList.isEmpty()){
             Iterator<Map.Entry<String,List<RecursiveAction>>> taskListIterator = taskList.entrySet().iterator();
             while (taskListIterator.hasNext()){
@@ -212,27 +198,29 @@ public class Indexing {
      * @return CommandResult с соотв результатом*/
     public CommandResult stop(){
         if (!isRunning){
-            //log.indLog("Indexing.stop(): индексация не идет", "info");
-            return new CommandResult(false, "Индексация не запущена.");
+            throw new IllegalStateException("Индексация не запущена.");
         }
         //команда на завершение пула и его ожидание
         synchronized (taskList){
-            for (Map.Entry<String, List<RecursiveAction>> taskOfSite : taskList.entrySet()){
-                for (RecursiveAction task : taskOfSite.getValue()){
+            for (Map.Entry<String, List<RecursiveAction>> tasksOfSite : taskList.entrySet()){
+                SiteEntity siteEntity = siteService.findByUrl(tasksOfSite.getKey());
+                siteEntity.setStatus(IndexingStatus.FAILED.toString());
+                siteEntity.setStatusTime(LocalDateTime.now());
+                siteEntity.setLastError("Индексация остановлена пользователем");
+                siteService.saveSite(siteEntity);
+                for (RecursiveAction task : tasksOfSite.getValue()){
                     task.cancel(true);
                 }
             }
         }
         isRunning = false;
-        //log.indLog("Indexing.stop(): индексация остановлена", "info");
-        return new CommandResult(true, "Индексация остановлена");
+        return new CommandResult(true);
     }
 
 
     /**Удаляет ВСЕ данные из БД*/
     private void clearDB(){
-       //log.indLog("Indexing.clearDB()", "info");
-        pageService.clear();//page имеет в поле site - ее надо первой грохать
+        pageService.clear();
         siteService.clear();
         lemmaService.clear();
         indexService.clear();
@@ -242,7 +230,6 @@ public class Indexing {
     /**Удаляет все данные связанные с указанным сайтом.
      * @param siteUrl адрес сайта, данные которого нужно удалить.*/
     private void clearSiteData(String siteUrl){
-        //log.indLog("Indexing.clearSiteData(): " + siteUrl, "info");
         if (siteService.existUrl(siteUrl)){
             SiteEntity siteEntity = siteService.findByUrl(siteUrl);
             int siteId = siteEntity.getId();
@@ -257,13 +244,11 @@ public class Indexing {
     /**Удаляет все данные связанные с указанной страницей.
      * @param fullUrl адрес страницы данные которой нужно удалить.*/
     private void clearPageData(String fullUrl){
-        //log.indLog("Indexing.clearPageData():" + fullUrl, "info");
-        String pageUrl = U.getLocalUrl(fullUrl, configAppl.getSites());
-        String siteUrl = U.pagesSite(fullUrl, configAppl.getSites());
+        String pageUrl = Utilites.getLocalUrl(fullUrl, configAppl.getSites());
+        String siteUrl = Utilites.pagesSite(fullUrl, configAppl.getSites());
 
         //найти id сайта с этой страницей
         SiteEntity siteEntity = siteService.findByUrl(siteUrl);
-        int siteId = siteEntity.getId();
         // найти id зачищаемой страницы.
         int pageId;
         try{
@@ -307,7 +292,7 @@ public class Indexing {
      * <p>=site, если ссылка на главную страницу сайтаиз списка</p>
      * <p>=сама ссылка, если не главная страница сайта из списка*</p>*/
     public String checkUrl(String inputUrl){
-        String localUrl = U.getLocalUrl(inputUrl,configAppl.getSites());
+        String localUrl = Utilites.getLocalUrl(inputUrl,configAppl.getSites());
         if (localUrl.isEmpty()) { return "error"; }
         if (inputUrl.equalsIgnoreCase(localUrl)) { return "site"; }
         return localUrl;
