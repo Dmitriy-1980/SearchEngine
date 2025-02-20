@@ -166,7 +166,7 @@ public class Search {
 
     /**Перебирает теги HTML-документа в определенном порядке
      * и в тексте каждого тега ищет искомые слова.
-     * При нахождении тега содержащего все искомые слова поиск прекращается.
+     * Из тегов с одинаковым кол слов выбирается меньший.
      * @param document код страницы.
      * @param lemmaList список лемм- искомых слов.
      * @return String- найденный кусок текста с выделенными искомыми словами.
@@ -179,21 +179,12 @@ public class Search {
         int wordsInQuery = lemmaList.size();
         //перебор тегов и поиск в них нужных слов
         for (String tagName : tagsName){
-            boolean breakFlag = false;
             for (Element tag : document.body().select(tagName)){
                 Snippet newSnippet = getSnippetOnTag(tag.text(), lemmaList );
-                if (newSnippet.wordCount==wordsInQuery){
-                    snippet.setText(newSnippet.getText());
-                    snippet.setWordCount(newSnippet.getWordCount());
-                    breakFlag = true;
-                    break;
-                }
-                if (newSnippet.wordCount>snippet.wordCount){
-                    snippet.setText(newSnippet.getText());
-                    snippet.setWordCount(newSnippet.getWordCount());
-                }
+                if (newSnippet.wordCount < snippet.wordCount) { continue; }
+                if (newSnippet.wordCount > snippet.wordCount) { snippet = newSnippet; continue; }
+                if (newSnippet.text.length() < snippet.text.length()) { snippet = newSnippet; }
             }
-            if (breakFlag) {break;}
         }
         log.searchLog("after getSnippet(). return: " + snippet.text, "info");
         return snippet.text;
@@ -210,7 +201,7 @@ public class Search {
         List<String> originalWords = new ArrayList<>();
         List<String> text = List.of(inputText.split("[ :punct]+"));
         for (String word : text){
-            List<String> lemmas = luceneService.getLemma(word);
+            List<String> lemmas = luceneService.getLemma(word.toLowerCase());
             if (lemmas.isEmpty()) { continue; }
             String lemma = lemmas.get(0);
             if (lemmaList.contains(lemma)){
@@ -237,7 +228,7 @@ public class Search {
         int wordLength = word.length();
         StringBuilder result = new StringBuilder();
         while (true){
-            pos = textLowCase.indexOf(word, start);
+            pos = textLowCase.indexOf(word.toLowerCase(), start);
             if (pos == -1) {
                 result.append(insertText.substring(start, insertText.length()));
                 break;

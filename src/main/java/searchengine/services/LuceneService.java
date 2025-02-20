@@ -13,4 +13,5 @@ public interface LuceneService {
 
     //получить список уникальных лемм из текста
     List<String> getUniqLemmaList(String text);
+
 }

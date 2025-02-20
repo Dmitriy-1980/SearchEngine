@@ -16,5 +16,6 @@ public class Snippet {
     public Snippet(String text, int wordCount) {
         this.text = text;
         this.wordCount = wordCount;
+
     }
 }
